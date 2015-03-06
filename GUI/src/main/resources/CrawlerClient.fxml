@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.*?>
+<VBox maxHeight="400.0" maxWidth="600.0" minHeight="400.0" minWidth="600.0" prefHeight="400.0" prefWidth="600.0"
+      xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="system.UIController">
+    <children>
+        <HBox alignment="CENTER_LEFT">
+            <children>
+                <Button fx:id="addButton" alignment="CENTER" mnemonicParsing="false" text="Add Thread">
+                    <HBox.margin>
+                        <Insets bottom="1.0" left="2.0" right="2.0" top="1.0"/>
+                    </HBox.margin>
+                </Button>
+                <Button fx:id="terButton" alignment="CENTER" mnemonicParsing="false" text=" Terminate Thread">
+                    <HBox.margin>
+                        <Insets bottom="1.0" left="2.0" right="2.0" top="1.0"/>
+                    </HBox.margin>
+                </Button>
+                <Label alignment="CENTER" text="Threads:">
+                    <HBox.margin>
+                        <Insets bottom="1.0" left="2.0" right="2.0" top="1.0"/>
+                    </HBox.margin>
+                </Label>
+                <Label fx:id="threadCountLabel" alignment="CENTER" text="0">
+                    <HBox.margin>
+                        <Insets bottom="1.0" left="2.0" right="2.0" top="1.0"/>
+                    </HBox.margin>
+                </Label>
+                <Region HBox.hgrow="ALWAYS">
+                    <HBox.margin>
+                        <Insets bottom="1.0" left="2.0" right="2.0" top="1.0"/>
+                    </HBox.margin>
+                </Region>
+                <Label alignment="CENTER" text="Server:">
+                    <HBox.margin>
+                        <Insets bottom="1.0" left="2.0" right="2.0" top="1.0"/>
+                    </HBox.margin>
+                </Label>
+                <TextField alignment="CENTER" promptText="http://localhost:8080/">
+                    <HBox.margin>
+                        <Insets bottom="1.0" left="2.0" right="2.0" top="1.0"/>
+                    </HBox.margin>
+                </TextField>
+            </children>
+        </HBox>
+        <TableView fx:id="tableView" prefHeight="196.0" prefWidth="600.0" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="idColumn" prefWidth="75.0" text="Thread id">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="id"/>
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="statusColumn" prefWidth="75.0" text="Status">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="status"/>
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="urlColumn" prefWidth="350.0" text="URL">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="currentUrl"/>
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="perfColumn" prefWidth="75.0" text="url/min">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="performance"/>
+                    </cellValueFactory>
+                </TableColumn>
+            </columns>
+            <items>
+            </items>
+        </TableView>
+        <SplitPane dividerPositions="0.9264214046822743" prefHeight="160.0" prefWidth="490.0">
+            <items>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="196.0" prefWidth="551.0"
+                            SplitPane.resizableWithParent="false">
+                    <children>
+                        <CheckBox layoutX="14.0" layoutY="14.0" mnemonicParsing="false" prefHeight="17.0"
+                                  prefWidth="113.0" text="Force Timeout"/>
+                        <CheckBox layoutX="14.0" layoutY="31.0" mnemonicParsing="false" prefHeight="17.0"
+                                  prefWidth="158.0" text="Power Mode (not polite)" textFill="RED"/>
+                        <CheckBox layoutX="14.0" layoutY="48.0" mnemonicParsing="false" prefHeight="17.0"
+                                  prefWidth="100.0" text="Low Profile"/>
+                        <Label layoutX="14.0" layoutY="65.0"/>
+                        <LineChart fx:id="lineChart" createSymbols="false" layoutX="276.0" layoutY="7.0"
+                                   prefHeight="149.0" prefWidth="271.0">
+                            <xAxis>
+                                <CategoryAxis side="BOTTOM"/>
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis side="LEFT"/>
+                            </yAxis>
+                        </LineChart>
+                        <Label layoutX="14.0" layoutY="65.0" text="Total url/min: "/>
+                        <Label fx:id="urlmin" layoutX="89.0" layoutY="65.0" text="0"/>
+                        <Label layoutX="14.0" layoutY="82.0" text="Total urls: "/>
+                        <Label fx:id="totalurls" layoutX="89.0" layoutY="82.0" text="0"/>
+                        <Label layoutX="3.0" layoutY="136.0" text="v1.0"/>
+                    </children>
+                </AnchorPane>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="158.0" prefWidth="121.0">
+                    <children>
+                        <SplitPane dividerPositions="0.797979797979798" layoutX="-31.0" layoutY="-32.0"
+                                   orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
+                            <items>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="155.0" prefWidth="64.0">
+                                    <children>
+                                        <Slider fx:id="powerSlider" blockIncrement="100.0" layoutX="43.0" layoutY="34.0"
+                                                majorTickUnit="100.0" max="2000.0" min="100.0" minorTickCount="100"
+                                                orientation="VERTICAL" prefHeight="117.0" prefWidth="14.0"
+                                                showTickLabels="true" snapToTicks="true" value="200.0"/>
+                                    </children>
+                                </AnchorPane>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                                    <children>
+                                        <Label alignment="CENTER" layoutX="32.0" layoutY="6.0" text="Load%"/>
+                                    </children>
+                                </AnchorPane>
+                            </items>
+                        </SplitPane>
+                    </children>
+                </AnchorPane>
+            </items>
+        </SplitPane>
+    </children>
+</VBox>
