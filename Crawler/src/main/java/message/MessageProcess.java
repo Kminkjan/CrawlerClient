@@ -13,21 +13,27 @@ import java.util.List;
  */
 public class MessageProcess extends Message {
     private List<String> urlList;
-    private final URLData urlData;
+    private final List<URLData> urlData;
+    private final int depth;
 
-    public MessageProcess(List<String> urlList,URLData urlData) {
+    public MessageProcess(List<String> urlList,List<URLData> urlData, int depth) {
         super(MessageType.PROCESSED_URLS);
 
         /* Make the urlList immutable */
         this.urlList = Collections.unmodifiableList(new ArrayList<String>(urlList));
         this.urlData = urlData;
+        this.depth = depth;
     }
 
     public List<String> getUrlList() {
         return this.urlList;
     }
 
-    public URLData getUrlData() {
+    public List<URLData> getUrlData() {
         return urlData;
+    }
+
+    public int getDepth() {
+        return depth;
     }
 }

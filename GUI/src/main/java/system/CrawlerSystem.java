@@ -6,7 +6,10 @@ import akka.actor.Props;
 import crawlingmodule.Crawler;
 import crawlingmodule.DataProcessor;
 import crawlingmodule.Module;
-import crawlingmodule.ModuleInfo;
+import message.MessageActive;
+import message.MessageOrder;
+import util.DatabaseConnector;
+import util.ModuleInfo;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.chart.XYChart;
 import message.Message;
@@ -58,7 +61,7 @@ public class CrawlerSystem {
     public ModuleInfo addModule() {
         ModuleInfo tempInfo = new ModuleInfo("thread " + threadCount++, "starting", "http://jsoup.org", "0");
         ActorRef processor = system.actorOf(Props.create(DataProcessor.class));
-        ActorRef crawler = system.actorOf(Props.create(Crawler.class, processor));
+        ActorRef crawler = system.actorOf(Props.create(Crawler.class, processor, true));
         ActorRef module = system.actorOf(Props.create(Module.class, crawler, processor, tempInfo, admin, idCounter));
 
         modulelist.push(module);
@@ -103,7 +106,7 @@ public class CrawlerSystem {
     /**
      * Updates the info about a {@link crawlingmodule.Module}.
      *
-     * @param module The id of the Module of which the {@link crawlingmodule.ModuleInfo} will be updated.
+     * @param module The id of the Module of which the {@link util.ModuleInfo} will be updated.
      * @param ms     Amount of milliseconds the previous request took.
      */
     public void updateInfo(int module, long ms) {
@@ -131,5 +134,14 @@ public class CrawlerSystem {
         if (dataList.size() > 20) {
             dataList.remove(0);
         }
+    }
+
+    public void activate(String startUrl) {
+        modulelist.getLast().tell(new MessageActive(startUrl, 2), null);
+    }
+
+    public void refresh() {
+        DatabaseConnector connector = new DatabaseConnector();
+        modulelist.getLast().tell(new MessageOrder(connector.outdatedDatabaseUrls()), null);
     }
 }

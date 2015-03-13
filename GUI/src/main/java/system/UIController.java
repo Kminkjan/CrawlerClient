@@ -1,6 +1,6 @@
 package system;
 
-import crawlingmodule.ModuleInfo;
+import util.ModuleInfo;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -75,13 +75,15 @@ public class UIController implements Initializable {
         terButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent arg0) {
-                ObservableList<ModuleInfo> data = tableView.getItems();
-                if (system.removeModule()) {
-                    System.out.println("Marked Thread for termination");
-                    threadCountLabel.setText("" + --count);
-                } else {
-                    System.out.println("You cant delete a thread if there isn't any active thread");
-                }
+//                ObservableList<ModuleInfo> data = tableView.getItems();
+//                if (system.removeModule()) {
+//                    System.out.println("Marked Thread for termination");
+//                    threadCountLabel.setText("" + --count);
+//                } else {
+//                    System.out.println("You cant delete a thread if there isn't any active thread");
+//                }
+//                system.activate("http://www.reddit.com");
+                system.refresh();
             }
         });
 

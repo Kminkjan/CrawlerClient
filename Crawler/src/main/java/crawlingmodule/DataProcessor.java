@@ -2,11 +2,10 @@ package crawlingmodule;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
-import message.Message;
-import message.MessageDocument;
-import message.MessageProcess;
+import message.*;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import util.ActiveURLData;
 import util.URLData;
 
 import java.net.URI;
@@ -34,8 +33,17 @@ public class DataProcessor extends UntypedActor {
      */
     private final Analyser analyser = new Analyser();
 
+    /**
+     * Dont crawl any of these extensions
+     */
     private final static Pattern FILTERS = Pattern.compile(".*(\\.(css|js|gif|jpe?g"
             + "|png|mp3|mp3|zip|gz|exe|jar))$");
+
+    /**
+     * If an url contatins these characters they will be excluded
+     */
+    private final static Pattern EXCLUDE = Pattern.compile("[$|%|#|@]");
+
 
     /**
      * HashSet with all the already visited urls, so that an url is not visited twice
@@ -52,7 +60,8 @@ public class DataProcessor extends UntypedActor {
                 module.tell(new Message(Message.MessageType.PROCESSOR_NOTIFY), getSelf());
                 break;
             case DOCUMENT:
-                processDocument(((MessageDocument) message).getDoc());
+                MessageDocument md = (MessageDocument) message;
+                processDocument(md.getDoc(), md.getDepth());
                 break;
         }
     }
@@ -62,14 +71,24 @@ public class DataProcessor extends UntypedActor {
      *
      * @param doc The document to process
      */
-    private void processDocument(Document doc) {
+    private void processDocument(Document doc, int depth) {
+        System.out.println("process: " + doc.location() + " " + depth);
         if (doc == null) {
             System.out.println("document is null");
-        } else {
-            URLData urlData = analyser.analyseDocument(doc);
-            if (urlData != null) {
-                module.tell(new MessageProcess(selectUrls(doc.select("a")), urlData), getSelf());
+        } else {List<URLData> urlData;
+            if (depth == 0) {
+                System.out.println("idle data proc");
+                urlData = analyser.analyseDocument(doc);
+                if (urlData != null) {
+                    module.tell(new MessageProcess(selectUrls(doc.select("a"), 5), urlData, depth), getSelf());
+                }
+            } else {
+                Elements e = doc.select("a");
+                ActiveURLData activeURLData = new ActiveURLData(doc.location(), null, 1, depth, selectUrls(e, e.size()));
+                module.tell(new MessageActiveDone(activeURLData), getSelf());
+                // TODO urlData = analyser.analyseActive(doc); rate the page by url
             }
+
         }
     }
 
@@ -79,16 +98,16 @@ public class DataProcessor extends UntypedActor {
      *
      * @param elements The elements to choose from.
      */
-    private List<String> selectUrls(Elements elements) {
+    private List<String> selectUrls(Elements elements, int amount) {
         List<String> tempList = new ArrayList<String>();
         Random random = new Random();
         int elementCount = elements.size();
 
         if (elementCount > 0) {
             /* Try to select 5 urls */
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < amount; i++) {
                 String potentialUrl = elements.get(random.nextInt(elementCount)).attr("abs:href");
-                if (potentialUrl != null && !potentialUrl.isEmpty() && legitUrl(potentialUrl) && !potentialUrl.contains("wiki") && !potentialUrl.contains("#") && !potentialUrl.contains("?") && !visitedUrls.contains(potentialUrl)) {
+                if (potentialUrl != null && legitUrl(potentialUrl)) {
 
                     /* Check if the buffer is filled */
                     if (visitedUrls.size() > 9900) {
@@ -126,6 +145,6 @@ public class DataProcessor extends UntypedActor {
         } catch (URISyntaxException e) {
             return false;
         }
-        return !FILTERS.matcher(url).matches();
+        return !url.isEmpty() && !FILTERS.matcher(url).matches() && !EXCLUDE.matcher(url).matches() && !url.contains("wiki") && !visitedUrls.contains(url);
     }
 }

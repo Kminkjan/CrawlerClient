@@ -4,9 +4,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import util.URLData;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -23,7 +21,7 @@ public class Analyser {
      * Words to exclude (Mostly Conjunctions (http://en.wikipedia.org/wiki/Conjunction_(grammar)) and Articles)
      */
     private final static Pattern FILTERS = Pattern.compile("(a|the|an|me|my|i|we|it|for|if|or|but|so|all|as|on|off|thai|" +
-            "from|to|of|by)");
+            "from|to|of|by|is)");
 
     /**
      * Constants to attach values to HTML items.
@@ -47,7 +45,7 @@ public class Analyser {
      * @param doc The to be analyzed Document.
      * @return An URLData object that can be put into the Database
      */
-    protected URLData analyseDocument(Document doc) {
+    protected List<URLData> analyseDocument(Document doc) {
         TreeMap<String, Integer> map = new TreeMap<String, Integer>();
 
         /* Check the META keywords */
@@ -95,7 +93,7 @@ public class Analyser {
     private void checkTags(String[] tags, Map<String, Integer> map, final int VALUE) {
         for (String tag : tags) {
             /* trim all the irrelevant characters*/
-            tag = tag.replaceAll("[,|.|:|;|!|?|(|)|^|+|/]", "").trim().toLowerCase();
+            tag = tag.replaceAll("[,|.|:|;|!|?|(|)|^|+|/|-]", "").trim().toLowerCase();
 
             /* Add the counter for that tag */
             if (!tag.isEmpty() && !FILTERS.matcher(tag).matches()) {
@@ -115,19 +113,30 @@ public class Analyser {
      * @param link     The link (url) of the source web page
      * @return A new URLData containing the tag's information
      */
-    private URLData constructURLData(Set<Map.Entry<String, Integer>> entrySet, String link) {
+    private List<URLData> constructURLData(Set<Map.Entry<String, Integer>> entrySet, String link) {
         TreeMap<Integer, String> treeMap = new TreeMap<Integer, String>();
+        List<URLData> urlDataList = new ArrayList<URLData>();
 
         /* Put every entry in a TreeMap sorted to values instead of Strings */
         for (Map.Entry<String, Integer> entry : entrySet) {
             treeMap.put(entry.getValue(), entry.getKey());
         }
 
-        Map.Entry<Integer, String> entry = treeMap.pollLastEntry();
-        while (entry.getValue().isEmpty() && !treeMap.isEmpty()) {
-            entry = treeMap.pollLastEntry();
-        }
+        for (int i = 0; i < 3; i++) {
+            Map.Entry<Integer, String> entry = treeMap.pollLastEntry();
+            if (entry != null) {
+                while (entry.getValue().isEmpty() && !treeMap.isEmpty()) {
+                    entry = treeMap.pollLastEntry();
+                }
 
-        return new URLData(link, entry.getValue(), entry.getKey());
+                urlDataList.add(new URLData(link, entry.getValue(), entry.getKey()));
+            }
+        }
+        return urlDataList;
+    }
+
+    public List<URLData> analyseActive(Document doc) {
+
+        return null;
     }
 }

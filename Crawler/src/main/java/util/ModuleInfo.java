@@ -1,4 +1,4 @@
-package crawlingmodule;
+package util;
 
 import javafx.beans.property.SimpleStringProperty;
 
@@ -77,7 +77,7 @@ public class ModuleInfo {
     }
 
     /**
-     * Calculates the performance of this {@link Module} by calculating the average
+     * Calculates the performance of this {@link crawlingmodule.Module} by calculating the average
      * time per result of the last 100 results and divide it by 60000 (a minute).
      *
      * @param result The amount of time of the last result.

@@ -31,15 +31,18 @@ public class Crawler extends UntypedActor {
      * between requests.
      */
     private int CRAWL_DELAY = 100;
+    private final boolean verbose;
 
     /**
      * Create a Crawler
      *
      * @param processor This Crawler's associated {@link crawlingmodule.DataProcessor}.
      */
-    public Crawler(ActorRef processor) {
+    public Crawler(ActorRef processor, boolean verbose) {
         this.processor = processor;
+        this.verbose = verbose;
     }
+
 
     @Override
     public void onReceive(Object o) throws Exception {
@@ -50,9 +53,8 @@ public class Crawler extends UntypedActor {
                 break;
             case GIVE_URL:
                 long startTime = System.nanoTime();
-//                long startTime = System.currentTimeMillis();
 
-                doCrawl(((MessageUrl) message).getUrlData());
+                doCrawl(((MessageUrl) message).getUrlData(), ((MessageUrl) message).getDepth());
 
                 getSender().tell(new Message(Message.MessageType.REQUEST_URL), getSelf());
 
@@ -80,16 +82,17 @@ public class Crawler extends UntypedActor {
 
     /**
      * Crawls the given url and sends the result to {@link #processor}.
-     * FIXME handle some errors here
      *
      * @param urlData The url to be crawled.
      */
-    private void doCrawl(String urlData) {
+    private void doCrawl(String urlData, int depth) {
         try {
             Document doc = Jsoup.connect(urlData).timeout(500).get();
-            processor.tell(new MessageDocument(doc), getSelf());
+            processor.tell(new MessageDocument(doc, depth), getSelf());
         } catch (IOException e) {
-            System.out.println("error: " + e.getLocalizedMessage() + "\n url: " + urlData);
+            if (verbose) {
+                System.out.println("error: " + e.getLocalizedMessage() + "\n url: " + urlData);
+            }
         }
     }
 

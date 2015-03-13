@@ -1,29 +1,27 @@
-package system; /**
- * Created by KrisMinkjan on 13-2-2015.
- */
-
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
-
-import java.io.IOException;
+package system;
 import java.util.Scanner;
 
+/**
+ * Default Commandline application for non-ui systems
+ *
+ * @author Kris Minkjan
+ */
 public class Main {
 
-    public static void main(String[] args) {
-        System.out.println("Thanks for using the crawler made by: \n\n\tTeleCorp\n");
+    private static final String WELCOME_MESSAGE = "CrawlerClient v1.1\nThanks for using the crawler made by: \n\n\tTeleCorp(c)\n";
 
-                Scanner in = new Scanner(System.in);
-        System.out.print("Amount of threads to start: ");
+    public static void main(String[] args) {
+        System.out.println(WELCOME_MESSAGE);
+
+        Scanner in = new Scanner(System.in);
+        System.out.print("amount of threads to start: ");
         int amount = in.nextInt();
+        CrawlerSystem system = new CrawlerSystem(amount, args.length > 0 && args[0].equals("verbose"));
+        System.out.println("system created \nenter any key to exit");
+        in.next();
+        system.shutDown();
+        System.out.println(WELCOME_MESSAGE);
         in.close();
-        CrawlerSystem system = new CrawlerSystem(amount);
     }
 
 }

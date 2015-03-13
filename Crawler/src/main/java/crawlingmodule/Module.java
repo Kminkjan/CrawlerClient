@@ -2,10 +2,10 @@ package crawlingmodule;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
-import message.Message;
-import message.MessageDone;
-import message.MessageProcess;
-import message.MessageUrl;
+import message.*;
+import util.ActiveURLData;
+import util.DepthData;
+import util.ModuleInfo;
 import util.URLData;
 
 import java.net.URI;
@@ -13,6 +13,8 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A Module regulates the crawling and analysing of html pages. It is build so that
@@ -32,8 +34,8 @@ public class Module extends UntypedActor {
      * The Module's child components.
      */
     private final ActorRef crawler, processor, admin;
-    private boolean crawlerNotified, processorNotified, waitForUrl, power;
-    private final static int POLITE_DELAY = 500;
+    private boolean crawlerNotified, processorNotified, waitForUrl, power, onOrder, active = true;
+    private final static long POLITE_DELAY = TimeUnit.NANOSECONDS.convert(1000, TimeUnit.MILLISECONDS);
 
     /**
      * Object that where info about this Module is stored. Used for the GUI.
@@ -50,6 +52,9 @@ public class Module extends UntypedActor {
      */
     private final LinkedList<String> urlList;
     private final HashMap<String, Long> domainMap = new HashMap<String, Long>();
+
+    private final PriorityQueue<DepthData> activeUrlQueue = new PriorityQueue<DepthData>();
+    private int maxDepth = 0;
 
     /**
      * Creates a {@link Module}
@@ -72,6 +77,7 @@ public class Module extends UntypedActor {
         /* Notify the child Actors to start */
         crawler.tell(new Message(Message.MessageType.MODULE_NOTIFY), getSelf());
         processor.tell(new Message(Message.MessageType.MODULE_NOTIFY), getSelf());
+//        activeUrlQueue.add(new DepthData("http://jsoup.org", 1));
     }
 
     @Override
@@ -80,11 +86,11 @@ public class Module extends UntypedActor {
         switch (message.getType()) {
             case CRAWLER_NOTIFY:
                 if (processorNotified) {
-                    info.setStatus("running");
+                    info.setStatus("idle");
                 }
                 crawlerNotified = true;
 
-                getSender().tell(new MessageUrl("http://jsoup.org"), getSelf());
+                getSender().tell(new MessageUrl("http://jsoup.org", 0), getSelf());
                 info.setCurrentUrl("http://jsoup.org");
                 break;
             case PROCESSOR_NOTIFY:
@@ -94,8 +100,12 @@ public class Module extends UntypedActor {
                 processorNotified = true;
                 break;
             case REQUEST_URL:
-                if (!urlList.isEmpty()) {
-                    getSender().tell(new MessageUrl(selectNextUrl()), getSelf());
+                if (active && !activeUrlQueue.isEmpty()) {
+                    DepthData data = activeUrlQueue.poll();
+                    info.setCurrentUrl(data.getUrl());
+                    getSender().tell(new MessageUrl(data.getUrl(), data.getDepth()), getSelf());
+                } else if (!active && !urlList.isEmpty()) {
+                    getSender().tell(new MessageUrl(selectNextUrl(), 0), getSelf());
                 } else {
                     waitForUrl = true;
                 }
@@ -107,11 +117,57 @@ public class Module extends UntypedActor {
                 break;
             case PROCESSED_URLS:
                 MessageProcess m = (MessageProcess) message;
-                processUrls(m.getUrlList(), m.getUrlData());
+                processUrls(m.getUrlList(), m.getUrlData(), m.getDepth());
                 break;
             case EDIT_VALUE:
                 crawler.tell(message, getSelf());
                 break;
+            case ORDER:
+                urlList.clear();
+                urlList.addAll(((MessageOrder) message).getOrderList());
+                onOrder = true;
+                info.setStatus("refresh database");
+                break;
+            case ACTIVE:
+                MessageActive ma = (MessageActive) message;
+                this.active = true;
+                activeUrlQueue.offer(new DepthData(ma.getStartUrl(), 1));
+                this.maxDepth = ma.getMaxDepth();
+                info.setStatus("active");
+                break;
+            case ACTIVE_PROCESS:
+//                System.out.println("recieved");
+                MessageActiveDone mad = (MessageActiveDone) message;
+                processActive(mad.getActiveURLData());
+                break;
+        }
+    }
+
+    private void processActive(ActiveURLData activeURLData) {
+        if (activeURLData.getDepth() <= maxDepth) {
+            for (String link : activeURLData.getLinkList()) {
+                activeUrlQueue.add(new DepthData(link, activeURLData.getDepth() + 1));
+//                System.out.println("added: " + link);
+            }
+            if (waitForUrl && !activeUrlQueue.isEmpty()) {
+                waitForUrl = false;
+                DepthData url = activeUrlQueue.poll();
+                crawler.tell(new MessageUrl(url.getUrl(), url.getDepth()), getSelf());
+                info.setCurrentUrl(url.getUrl());
+            }
+            System.out.println(activeURLData.getUrl() + " | depth: " + activeURLData.getDepth());
+            admin.tell(new MessageDoneActive(this.id, System.nanoTime() - previousStartTime, activeURLData), getSelf());
+
+            previousStartTime = System.nanoTime();
+        } else {
+            System.out.println("DONE, continueing idle crawling");
+            active = false;
+            info.setStatus("idle");
+            urlList.addAll(activeURLData.getLinkList().subList(0, 20));
+            if (waitForUrl) {
+                /* Continue idle crawling */
+                crawler.tell(new MessageUrl(activeURLData.getUrl(), 0), getSelf());
+            }
         }
     }
 
@@ -121,20 +177,27 @@ public class Module extends UntypedActor {
      *
      * @param urls The urls that will be added.
      */
-    private void processUrls(List<String> urls, URLData urlData) {
-        urlList.addAll(urls);
+    private void processUrls(List<String> urls, List<URLData> urlData, int depth) {
+        System.out.println("processurls + " + urls.size());
+        if (onOrder && urlList.isEmpty()) { // TODO this is funky
+            onOrder = false;
+            info.setStatus("idle");
+            urlList.addAll(urls);
+        } else if (urlList.size() < 256) {
+            urlList.addAll(urls);
+        }
 
         /* Check if the crawler should be notified */
         if (waitForUrl && !urlList.isEmpty()) {
             waitForUrl = false;
             String url = urlList.poll();
-            crawler.tell(new MessageUrl(url), getSelf());
+            crawler.tell(new MessageUrl(url, 0), getSelf());
             info.setCurrentUrl(url);
         }
 
-        admin.tell(new MessageDone(this.id, System.nanoTime() - previousStartTime, urlData), getSelf());
+        admin.tell(new MessageDone(this.id, System.nanoTime() - previousStartTime, urlData, !onOrder), getSelf());
 
-        previousStartTime = System.nanoTime(); // currentTimeMillis();
+        previousStartTime = System.nanoTime();
     }
 
     /**
@@ -144,12 +207,11 @@ public class Module extends UntypedActor {
      * @return The next url.
      */
     private String selectNextUrl() {
-        String url = "";
-        url = urlList.poll();
+        String url = urlList.poll();
         if (!power && urlList.size() > 40) {
             try {
                 /* currentTime = good enough */
-                long currentTime = System.currentTimeMillis();
+                long currentTime = System.nanoTime();
                 String domain = getDomain(url);
 
                 /* Search for an url that can be crawled */
@@ -180,6 +242,7 @@ public class Module extends UntypedActor {
         String domain = uri.getHost();
         if (domain == null) {
             System.out.println("null url: " + url);
+            return null;
         }
         return domain.startsWith("www.") ? domain.substring(4) : domain;
     }

@@ -6,14 +6,20 @@ package message;
  * Created by KrisMinkjan on 14-2-2015.
  */
 public class MessageUrl extends Message {
-    private String urlData;
+    private final String urlData;
+    private final int depth;
 
-    public MessageUrl(String urlData) {
+    public MessageUrl(String urlData, int depth) {
         super(MessageType.GIVE_URL);
         this.urlData = urlData;
+        this.depth = depth;
     }
 
     public String getUrlData() {
         return this.urlData;
+    }
+
+    public int getDepth() {
+        return depth;
     }
 }

@@ -1,9 +1,10 @@
-package system;
+package nl.minkjan.crawler;
 
 import akka.actor.UntypedActor;
-import javafx.application.Platform;
+import android.app.Activity;
 import message.Message;
 import message.MessageDone;
+import message.MessageDoneActive;
 import util.DatabaseConnector;
 import util.URLData;
 
@@ -11,18 +12,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The admin provides the link between the Modules, the database and the Application thread.
+ * The admin provides the link between the Modules and the Application thread.
  * <p/>
  * Created by Kris on 16-2-2015.
  */
 public class Admin extends UntypedActor {
-    private final CrawlerSystem system;
     private final List<URLData> dataBuffer = new ArrayList<URLData>();
     private static final int BUFFER_SIZE = 200;
     private final DatabaseConnector databaseConnector = new DatabaseConnector();
+    private final MainActivity activity;
+    private int count = 0;
 
-    public Admin(CrawlerSystem system) {
-        this.system = system;
+    public Admin(MainActivity activity) {
+        this.activity = activity;
     }
 
     @Override
@@ -31,29 +33,31 @@ public class Admin extends UntypedActor {
         switch (message.getType()) {
             case URL_DONE:
                 final MessageDone m2 = (MessageDone) message;
+                count += m2.getUrlData().size();
+                for (URLData data : m2.getUrlData() ) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            activity.setTextView(count);
+                        }
+                    });
 
-                /* Add urlData to the databuffer */
-                dataBuffer.addAll(m2.getUrlData());
+                    /* Add urlData to the databuffer */
+                    dataBuffer.add(data);
+                }
+
                 if (dataBuffer.size() > BUFFER_SIZE) {
                     databaseConnector.putUrl(dataBuffer);
 //                    debugPrint(dataBuffer);
                     dataBuffer.clear();
                 }
-
-                /* Update UI */
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        system.updateInfo(m2.getModule(), m2.getMs());
-                    }
-                });
                 break;
         }
     }
 
     private void debugPrint(List<URLData> urlDataList) {
         for(URLData urlData : urlDataList) {
-            System.out.println(urlData.getUrl() + " " + urlData.getTag());
+            System.out.println(urlData.getTag());
         }
     }
 }
