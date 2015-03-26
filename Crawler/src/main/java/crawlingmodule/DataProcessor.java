@@ -42,7 +42,7 @@ public class DataProcessor extends UntypedActor {
     /**
      * If an url contatins these characters they will be excluded
      */
-    private final static Pattern EXCLUDE = Pattern.compile("[$|%|#|@]");
+    private final static Pattern EXCLUDE = Pattern.compile("[$|%|#|@|?]");
 
 
     /**
@@ -72,12 +72,16 @@ public class DataProcessor extends UntypedActor {
      * @param doc The document to process
      */
     private void processDocument(Document doc, int depth) {
-        System.out.println("process: " + doc.location() + " " + depth);
+//        System.out.println("process: " + doc.location() + " " + depth);
         if (doc == null) {
             System.out.println("document is null");
-        } else {List<URLData> urlData;
-            if (depth == 0) {
-                System.out.println("idle data proc");
+        } else {
+            List<URLData> urlData;
+            if (doc.location().length() >= 255) {
+                module.tell(new MessageProcess(selectUrls(doc.select("a"), 5), new ArrayList<URLData>(), depth), getSelf());
+            }
+            else if (depth == 0) {
+//                System.out.println("idle data proc");
                 urlData = analyser.analyseDocument(doc);
                 if (urlData != null) {
                     module.tell(new MessageProcess(selectUrls(doc.select("a"), 5), urlData, depth), getSelf());
@@ -145,6 +149,6 @@ public class DataProcessor extends UntypedActor {
         } catch (URISyntaxException e) {
             return false;
         }
-        return !url.isEmpty() && !FILTERS.matcher(url).matches() && !EXCLUDE.matcher(url).matches() && !url.contains("wiki") && !visitedUrls.contains(url);
+        return !url.isEmpty() && url.length() < 128 && !FILTERS.matcher(url).matches() && !EXCLUDE.matcher(url).matches() && !url.contains("wiki") && !visitedUrls.contains(url);
     }
 }

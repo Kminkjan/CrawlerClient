@@ -30,7 +30,7 @@ public class Crawler extends UntypedActor {
      * The crawl delay is the time between consequent crawl request. The Crawler will space at least this amount of time
      * between requests.
      */
-    private int CRAWL_DELAY = 100;
+    private int CRAWL_DELAY = 400;
     private final boolean verbose;
 
     /**
@@ -87,7 +87,7 @@ public class Crawler extends UntypedActor {
      */
     private void doCrawl(String urlData, int depth) {
         try {
-            Document doc = Jsoup.connect(urlData).timeout(500).get();
+            Document doc = Jsoup.connect(urlData).timeout(1000).get();
             processor.tell(new MessageDocument(doc, depth), getSelf());
         } catch (IOException e) {
             if (verbose) {

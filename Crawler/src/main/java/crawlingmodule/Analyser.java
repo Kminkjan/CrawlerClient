@@ -21,16 +21,16 @@ public class Analyser {
      * Words to exclude (Mostly Conjunctions (http://en.wikipedia.org/wiki/Conjunction_(grammar)) and Articles)
      */
     private final static Pattern FILTERS = Pattern.compile("(a|the|an|me|my|i|we|it|for|if|or|but|so|all|as|on|off|thai|" +
-            "from|to|of|by|is)");
+            "from|to|of|by|is|\\?|@|with)");
 
     /**
      * Constants to attach values to HTML items.
      */
     private static final int
             META_VALUE = 500,
-            URL_VALUE = 250,
-            H1_VALUE = 200,
-            H2_VALUE = 75,
+            URL_VALUE = 150,
+            H1_VALUE = 100,
+            H2_VALUE = 25,
             LINK_VALUE = 150,
             TEXT_VALUE = 1;
 
@@ -93,10 +93,10 @@ public class Analyser {
     private void checkTags(String[] tags, Map<String, Integer> map, final int VALUE) {
         for (String tag : tags) {
             /* trim all the irrelevant characters*/
-            tag = tag.replaceAll("[,|.|:|;|!|?|(|)|^|+|/|-]", "").trim().toLowerCase();
+            tag = tag.replaceAll("[,|.|:|;|!|\\?|(|)|^|+|/|&|$|%|#|'|\\-|@]", "").trim().toLowerCase();
 
             /* Add the counter for that tag */
-            if (!tag.isEmpty() && !FILTERS.matcher(tag).matches()) {
+            if (!tag.isEmpty() && tag.length() > 2 && !tag.matches(".*\\d.*") && !FILTERS.matcher(tag).matches()) {
                 if (map.containsKey(tag)) {
                     map.put(tag, map.get(tag) + VALUE);
                 } else {
@@ -128,7 +128,6 @@ public class Analyser {
                 while (entry.getValue().isEmpty() && !treeMap.isEmpty()) {
                     entry = treeMap.pollLastEntry();
                 }
-
                 urlDataList.add(new URLData(link, entry.getValue(), entry.getKey()));
             }
         }

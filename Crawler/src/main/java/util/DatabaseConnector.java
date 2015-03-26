@@ -17,7 +17,7 @@ public class DatabaseConnector {
      */
     private final static String
             HOST = "jdbc:mysql://178.21.117.113:3306/",
-            DATABASE = "telescope_db2",
+            DATABASE = "telescope_db3",
             USERNAME = "rooter",
             PASSWORD = "haeshah3";
 
@@ -44,6 +44,7 @@ public class DatabaseConnector {
         try {
             connection = getDBConnection();
             statement = connection.createStatement();
+            System.out.println(constructPreQuery(urlDataList));
             statement.executeUpdate(constructPreQuery(urlDataList));
 
             statement.close();
@@ -107,9 +108,9 @@ public class DatabaseConnector {
      * @return The query String
      */
     private String constructQuery(List<URLData> urlDataList) {
-        String query = String.format("INSERT IGNORE INTO url_data (`url`, `tag`, `rating`) VALUES ");
+        String query = String.format("INSERT IGNORE INTO url_data (`url`, `tag`, `rating`,`domain`) VALUES ");
         for (URLData urlData : urlDataList) {
-            query += String.format("(\"%s\", \"%s\", %s)", urlData.getUrl(), urlData.getTag(), urlData.getRating()) + ",";
+            query += String.format("(\"%s\", \"%s\", %s, \"%s\")", urlData.getUrl(), urlData.getTag(), urlData.getRating(), urlData.getDomain()) + ",";
         }
         return query.substring(0, query.length() - 1) + ";";
     }
@@ -123,7 +124,7 @@ public class DatabaseConnector {
     private String constructPreQuery(List<URLData> urlDataList) {
         String query = String.format("INSERT INTO url (`url`, `timestamp`) VALUES ");
         for (URLData urlData : urlDataList) {
-            query += String.format("(\"%s\", CURDATE())", urlData.getUrl()) + ",";
+            query += String.format("(\"%s\", UNIX_TIMESTAMP(NOW()))", urlData.getUrl()) + ",";
         }
         query = query.substring(0, query.length() - 1) + " ON DUPLICATE KEY UPDATE timestamp = VALUES(timestamp);";
         return query;
@@ -154,8 +155,8 @@ public class DatabaseConnector {
 
     private String constructResultQuery(ActiveURLData data) {
         return String.format("INSERT INTO search_result (`searchid`,`tag`,`completeurl`,`orginurl`,`rating`,`pagecolor`," +
-                "`depth`,`crawlername`) VALUES (%s, \"%s\", \"%s\", \"%s\", %s,  \"%s\", %s, \"%s\")", 2, "pro", data.getUrl(), "nourl",
-                data.getRating(), "ffffff", data.getDepth(), "testcrawler");
+                "`depth`,`crawlername`) VALUES (%s, \"%s\", \"%s\", \"%s\", %s,  \"%s\", %s, \"%s\")", 1, "kris", data.getUrl(), "nourl",
+                data.getRating() + (Math.random() * 50), "ffffff", data.getDepth(), "testcrawler");
     }
 
     private String constructHyperlinkQuery(List<String> hyperlinks, String sourceUrl) {

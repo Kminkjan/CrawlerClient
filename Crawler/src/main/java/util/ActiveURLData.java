@@ -9,7 +9,7 @@ public class ActiveURLData extends URLData implements Comparable<ActiveURLData> 
     private final int depth;
     private final List<String> linkList;
 
-    public ActiveURLData(String url, String tag, int rating, int depth, List<String> linkList) {
+    public ActiveURLData(String url, String tag, int rating,int depth, List<String> linkList) {
         super(url, tag, rating);
         this.depth = depth;
         this.linkList = linkList;

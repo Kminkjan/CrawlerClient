@@ -34,7 +34,7 @@ public class Module extends UntypedActor {
      * The Module's child components.
      */
     private final ActorRef crawler, processor, admin;
-    private boolean crawlerNotified, processorNotified, waitForUrl, power, onOrder, active = true;
+    private boolean crawlerNotified, processorNotified, waitForUrl, power, onOrder, active = false;
     private final static long POLITE_DELAY = TimeUnit.NANOSECONDS.convert(1000, TimeUnit.MILLISECONDS);
 
     /**
@@ -90,12 +90,12 @@ public class Module extends UntypedActor {
                 }
                 crawlerNotified = true;
 
-                getSender().tell(new MessageUrl("http://jsoup.org", 0), getSelf());
-                info.setCurrentUrl("http://jsoup.org");
+                getSender().tell(new MessageUrl("https://java.com/nl/download/", 0), getSelf());
+                info.setCurrentUrl("https://java.com/nl/download/");
                 break;
             case PROCESSOR_NOTIFY:
                 if (crawlerNotified) {
-                    info.setStatus("running");
+                    info.setStatus("idle");
                 }
                 processorNotified = true;
                 break;
@@ -163,7 +163,7 @@ public class Module extends UntypedActor {
             System.out.println("DONE, continueing idle crawling");
             active = false;
             info.setStatus("idle");
-            urlList.addAll(activeURLData.getLinkList().subList(0, 20));
+            // urlList.addAll(activeURLData.getLinkList().subList(0, 20));
             if (waitForUrl) {
                 /* Continue idle crawling */
                 crawler.tell(new MessageUrl(activeURLData.getUrl(), 0), getSelf());
@@ -178,7 +178,6 @@ public class Module extends UntypedActor {
      * @param urls The urls that will be added.
      */
     private void processUrls(List<String> urls, List<URLData> urlData, int depth) {
-        System.out.println("processurls + " + urls.size());
         if (onOrder && urlList.isEmpty()) { // TODO this is funky
             onOrder = false;
             info.setStatus("idle");

@@ -20,7 +20,7 @@
                         <Insets bottom="1.0" left="2.0" right="2.0" top="1.0" />
                     </HBox.margin>
                 </Button>
-                <Button fx:id="terButton" alignment="CENTER" mnemonicParsing="false" text=" Terminate Thread">
+                <Button fx:id="terButton" alignment="CENTER" mnemonicParsing="false" text="Active Crawl">
                     <HBox.margin>
                         <Insets bottom="1.0" left="2.0" right="2.0" top="1.0" />
                     </HBox.margin>

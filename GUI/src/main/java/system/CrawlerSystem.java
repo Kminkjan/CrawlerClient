@@ -6,14 +6,11 @@ import akka.actor.Props;
 import crawlingmodule.Crawler;
 import crawlingmodule.DataProcessor;
 import crawlingmodule.Module;
-import message.MessageActive;
-import message.MessageOrder;
+import message.*;
 import util.DatabaseConnector;
 import util.ModuleInfo;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.chart.XYChart;
-import message.Message;
-import message.MessageEditValue;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -114,10 +111,9 @@ public class CrawlerSystem {
         ++urlsProcessed;
     }
 
-    public void updateUrl(int module, String url) {
-        infoHashMap.get(module).setCurrentUrl(url);
-    }
-
+    /**
+     * Update the UI, is called async by the {@link system.Admin}.
+     */
     public void update() {
         int sum = 0;
         for (ModuleInfo info : infoHashMap.values()) {
@@ -136,12 +132,18 @@ public class CrawlerSystem {
         }
     }
 
+    /**
+     * Tell the admin to crawl active
+     * @param startUrl
+     */
     public void activate(String startUrl) {
-        modulelist.getLast().tell(new MessageActive(startUrl, 2), null);
+        admin.tell(new MessageServer(startUrl, false), null);
     }
 
+    /**
+     * Tell the admin to refresh the server.
+     */
     public void refresh() {
-        DatabaseConnector connector = new DatabaseConnector();
-        modulelist.getLast().tell(new MessageOrder(connector.outdatedDatabaseUrls()), null);
+        admin.tell(new MessageServer("", true), null);
     }
 }

@@ -82,8 +82,9 @@ public class UIController implements Initializable {
 //                } else {
 //                    System.out.println("You cant delete a thread if there isn't any active thread");
 //                }
-//                system.activate("http://www.reddit.com");
-                system.refresh();
+                system.activate("https://java.com/nl/download/");
+//                system.activate("http://www.jsoup.org");
+//                system.refresh();
             }
         });
 
