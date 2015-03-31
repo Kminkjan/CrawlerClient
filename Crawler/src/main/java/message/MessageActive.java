@@ -5,7 +5,7 @@ package message;
  */
 public class MessageActive extends Message {
     private final String startUrl;
-    private final int maxDepth;
+    private final int maxDepth, searchId;
 
     /**
      * Create a Message
@@ -13,10 +13,11 @@ public class MessageActive extends Message {
      * @param startUrl the url where to start to crawl
      * @param maxDepth How deep to crawl
      */
-    public MessageActive(String startUrl, int maxDepth) {
+    public MessageActive(String startUrl, int maxDepth, int searchId) {
         super(MessageType.ACTIVE);
         this.startUrl = startUrl;
         this.maxDepth = maxDepth;
+        this.searchId = searchId;
     }
 
     public String getStartUrl() {
@@ -25,5 +26,9 @@ public class MessageActive extends Message {
 
     public int getMaxDepth() {
         return maxDepth;
+    }
+
+    public int getSearchId() {
+        return searchId;
     }
 }
