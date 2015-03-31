@@ -1,8 +1,6 @@
 package util;
 
 import akka.actor.ActorRef;
-import message.MessageActive;
-import message.MessageOrder;
 import message.MessageServer;
 
 import java.io.*;
@@ -25,13 +23,14 @@ public class ServerConnector {
     private final Socket socket;
     private final ActorRef admin;
     private final PrintWriter out;
+    private final SocketListener listener;
 
 
     public ServerConnector(ActorRef admin) throws IOException {
         System.out.println("TRYING TO SEND");
         this.admin = admin;
         socket = new Socket(SERVER_ADRESS, SERVER_PORT);
-        SocketListener listener = new SocketListener(socket);
+        listener = new SocketListener(socket);
         listener.start();
         out = new PrintWriter(new BufferedOutputStream(socket.getOutputStream()), true);
         out.println("checkin testcrawler");
@@ -42,16 +41,27 @@ public class ServerConnector {
 
         out.println("searchpoll 1 4 4 4");
         out.flush();
-
     }
 
     /**
      * Send a message to the server
-     * @param message   The message to be send
+     *
+     * @param message The message to be send
      */
     public void tellServer(String message) {
         out.println(message);
         out.flush();
+    }
+
+    /**
+     * Stops the {@link util.ServerConnector.SocketListener listener} and closes the socket.
+     *
+     * @throws IOException
+     */
+    public void stop() throws IOException {
+        listener.interrupt();
+        socket.close();
+        System.out.println("Socket closed");
     }
 
     /**

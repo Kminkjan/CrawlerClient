@@ -38,6 +38,12 @@ public class Admin extends UntypedActor {
     }
 
     @Override
+    public void postStop() throws Exception {
+        super.postStop();
+        serverConnector.stop();
+    }
+
+    @Override
     public void onReceive(Object o) throws Exception {
         Message message = (Message) o;
         switch (message.getType()) {

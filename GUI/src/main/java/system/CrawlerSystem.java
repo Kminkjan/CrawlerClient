@@ -85,7 +85,7 @@ public class CrawlerSystem {
      */
     public void shutDown() {
         system.shutdown();
-    }
+        }
 
     /**
      * Sets the delay between crawler requests.
