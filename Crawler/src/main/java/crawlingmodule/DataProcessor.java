@@ -114,9 +114,9 @@ public class DataProcessor extends UntypedActor {
                 if (potentialUrl != null && legitUrl(potentialUrl)) {
 
                     /* Check if the buffer is filled */
-                    if (visitedUrls.size() > 9900) {
+                    if (visitedUrls.size() > 190) {
                         /* fill buffer */
-                        if (visitedUrls.size() > 10000) {
+                        if (visitedUrls.size() > 200) {
                             /* Reset the visited hashmap and fill with the buffer */
                             visitedUrls.clear();
                             visitedUrls.addAll(switchBuffer);
@@ -149,6 +149,6 @@ public class DataProcessor extends UntypedActor {
         } catch (URISyntaxException e) {
             return false;
         }
-        return !url.isEmpty() && url.length() < 128 && !FILTERS.matcher(url).matches() && !EXCLUDE.matcher(url).matches() && !url.contains("wiki") && !visitedUrls.contains(url);
+        return !url.isEmpty() && url.length() < 128 && !FILTERS.matcher(url).matches() && !EXCLUDE.matcher(url).matches() && !url.contains("wiki") && !url.contains("youtube") && !url.contains("twitter") && !visitedUrls.contains(url);
     }
 }

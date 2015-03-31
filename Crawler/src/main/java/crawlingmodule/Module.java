@@ -35,7 +35,7 @@ public class Module extends UntypedActor {
      */
     private final ActorRef crawler, processor, admin;
     private boolean crawlerNotified, processorNotified, waitForUrl, power, onOrder, active = false;
-    private final static long POLITE_DELAY = TimeUnit.NANOSECONDS.convert(1000, TimeUnit.MILLISECONDS);
+    private final static long POLITE_DELAY = TimeUnit.NANOSECONDS.convert(700, TimeUnit.MILLISECONDS);
 
     /**
      * Object that where info about this Module is stored. Used for the GUI.
@@ -218,8 +218,12 @@ public class Module extends UntypedActor {
                     urlList.offer(url);
                     url = urlList.poll();
                     domain = getDomain(url);
+                    System.out.print("|");
                 }
                 domainMap.put(domain, currentTime);
+                if (domainMap.size() > 100) {
+                    domainMap.clear();
+                }
             } catch (URISyntaxException e) {
                 System.out.println("URL: " + url);
                 e.printStackTrace();

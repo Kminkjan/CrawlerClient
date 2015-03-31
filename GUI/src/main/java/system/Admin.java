@@ -46,7 +46,7 @@ public class Admin extends UntypedActor {
                 /* Check for availability */
                 if (m2.isAvailable()) {
                     if (!activeList.isEmpty()) {
-                        getSender().tell(new MessageActive(activeList.pollFirst(), 2), getSelf());
+                        getSender().tell(new MessageActive(activeList.pollFirst(), 3), getSelf());
                     } else if (orderNeeded) {
                         getSender().tell(new MessageOrder(databaseConnector.outdatedDatabaseUrls()), getSelf());
                         orderNeeded = false;

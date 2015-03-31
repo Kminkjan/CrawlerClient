@@ -30,7 +30,7 @@ public class Crawler extends UntypedActor {
      * The crawl delay is the time between consequent crawl request. The Crawler will space at least this amount of time
      * between requests.
      */
-    private int CRAWL_DELAY = 400;
+    private int CRAWL_DELAY = 150;
     private final boolean verbose;
 
     /**
