@@ -2,6 +2,8 @@ package util;
 
 import util.URLData;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,18 +19,14 @@ public class DatabaseConnector {
      */
     private final static String
             HOST = "jdbc:mysql://178.21.117.113:3306/",
-            DATABASE = "telescope_db3",
+            DATABASE = "telescope_db4",
             USERNAME = "rooter",
             PASSWORD = "haeshah3";
 
     public DatabaseConnector() {
         try {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -44,7 +42,7 @@ public class DatabaseConnector {
         try {
             connection = getDBConnection();
             statement = connection.createStatement();
-            System.out.println(constructPreQuery(urlDataList));
+            //System.out.println(constructPreQuery(urlDataList));
             statement.executeUpdate(constructPreQuery(urlDataList));
 
             statement.close();
@@ -54,8 +52,8 @@ public class DatabaseConnector {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            try { if (statement != null) statement.close();} catch (Exception e) {}
-            try { if (connection != null) connection.close();} catch (Exception e) {}
+            try { if (statement != null) statement.close();} catch (Exception ignored) {}
+            try { if (connection != null) connection.close();} catch (Exception ignored) {}
         }
         System.out.println("Send data to DataBase" + "\nQuery: putUrlData\n\tTime: "
                 + TimeUnit.MILLISECONDS.convert(
@@ -73,7 +71,7 @@ public class DatabaseConnector {
         try {
             connection = getDBConnection();
             statement = connection.createStatement();
-            System.out.println("SELECT url FROM url WHERE " + System.currentTimeMillis() + " - timestamp > " + 7/*1000 * 60 * 60 * 24 *7*/ + ";");
+            //System.out.println("SELECT url FROM url WHERE " + System.currentTimeMillis() + " - timestamp > " + 7/*1000 * 60 * 60 * 24 *7*/ + ";");
             resultset = statement.executeQuery("SELECT url FROM url WHERE " + System.currentTimeMillis() + " - timestamp > " + 7/*1000 * 60 * 60 * 24 *7*/ + ";");
             while (resultset.next()) {
                 updateList.add("http://" + resultset.getString("url"));
@@ -81,9 +79,9 @@ public class DatabaseConnector {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            try {if (resultset != null) resultset.close();} catch (Exception e) {};
-            try {if (statement != null) statement.close();} catch (Exception e) {};
-            try {if (connection != null) connection.close();} catch (Exception e) {};
+            try {if (resultset != null) resultset.close();} catch (Exception ignored) {};
+            try {if (statement != null) statement.close();} catch (Exception ignored) {};
+            try {if (connection != null) connection.close();} catch (Exception ignored) {};
         }
         System.out.println("Update:\nQuery: updateDatabase\nTime: "
                 + TimeUnit.MILLISECONDS.convert(
@@ -138,15 +136,18 @@ public class DatabaseConnector {
             try {
                 connection = getDBConnection();
                 statement = connection.createStatement();
-                System.out.println(constructResultQuery(activeURLData));
+                //System.out.println(constructResultQuery(activeURLData));
                 statement.executeUpdate(constructResultQuery(activeURLData));
-                System.out.println(constructHyperlinkQuery(activeURLData.getLinkList(), activeURLData.getUrl()));
-                statement.executeUpdate(constructHyperlinkQuery(activeURLData.getLinkList(), activeURLData.getUrl()));
+                //System.out.println(constructHyperlinkQuery(activeURLData.getLinkList(), activeURLData.getUrl()));
+
+                //statement.executeUpdate(constructHyperlinkQuery(activeURLData.getLinkList(), activeURLData.getUrl()));
+                //System.out.println(constructHyperlinkQuery(activeURLData.getSearchId(), activeURLData.getLinkList(), activeURLData.getDomain()));
+                statement.executeUpdate(constructHyperlinkQuery(activeURLData.getSearchId(), activeURLData.getLinkList(), activeURLData.getDomain()));
             } catch (SQLException e) {
                 e.printStackTrace();
             } finally {
-                try { if (statement != null) statement.close();} catch (Exception e) {}
-                try { if (connection != null) connection.close();} catch (Exception e) {}
+                try { if (statement != null) statement.close();} catch (Exception ignored) {}
+                try { if (connection != null) connection.close();} catch (Exception ignored) {}
             }
             System.out.println("Send ACTIVE! data to DataBase" + "\nQuery: putUrlData\n\tTime: "
                     + TimeUnit.MILLISECONDS.convert(
@@ -155,15 +156,42 @@ public class DatabaseConnector {
 
     private String constructResultQuery(ActiveURLData data) {
         return String.format("INSERT INTO search_result (`searchid`,`tag`,`completeurl`,`orginurl`,`rating`,`pagecolor`," +
-                "`depth`,`crawlername`) VALUES (%s, \"%s\", \"%s\", \"%s\", %s,  \"%s\", %s, \"%s\")", 1, "kris", data.getUrl(), "nourl",
-                data.getRating() + (Math.random() * 50), "ffffff", data.getDepth(), "testcrawler");
+                "`depth`,`crawlername`,`domain`) VALUES (%s, \"%s\", \"%s\", \"%s\", %s,  \"%s\", %s, \"%s\", \"%s\")", data.getSearchId(), data.getTag(), data.getUrl(), "nourl",
+                data.getRating() + (Math.random() * 50), "ffffff", data.getDepth(), "testcrawler", data.getDomain());
     }
 
     private String constructHyperlinkQuery(List<String> hyperlinks, String sourceUrl) {
-        String query = "INSERT INTO hyperlink (`completeurl`,`hyperlink`) VALUES ";
+        String query = "INSERT IGNORE INTO hyperlink (`completeurl`,`hyperlink`) VALUES ";
         for (String hyperlink : hyperlinks) {
             query += String.format("(\"%s\", \"%s\"),", sourceUrl, hyperlink);
         }
         return query.substring(0, query.length() - 1) + ";";
+    }
+
+    private String constructHyperlinkQuery(int searchId, List<String> hyperlinks, String sourceDomain) {
+        String query = "INSERT IGNORE INTO hyperlink (`searchid`, `domain`,`hyperlink`, `amount`) VALUES ";
+        for (String hyperlink : hyperlinks) {
+            try {
+                query += String.format("(%d, \"%s\", \"%s\", %d),",searchId, sourceDomain, getDomain(hyperlink), 1);
+            } catch (URISyntaxException ignored) {}
+        }
+        return query.substring(0, query.length() - 1) + " ON DUPLICATE KEY UPDATE amount = amount + 1;";
+    }
+
+    /**
+     * Retrieves the domain String from an url.
+     *
+     * @param url The url to be processed.
+     * @return This url's domain.
+     * @throws java.net.URISyntaxException
+     */
+    private String getDomain(String url) throws URISyntaxException {
+        URI uri = new URI(url);
+        String domain = uri.getHost();
+        if (domain == null) {
+            System.out.println("null url: " + url);
+            return null;
+        }
+        return domain.startsWith("www.") ? domain.substring(4) : domain;
     }
 }

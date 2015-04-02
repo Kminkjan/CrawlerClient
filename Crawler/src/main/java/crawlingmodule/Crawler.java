@@ -2,6 +2,7 @@ package crawlingmodule;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
+import com.sun.org.apache.xpath.internal.operations.Mod;
 import message.Message;
 import message.MessageDocument;
 import message.MessageEditValue;
@@ -11,16 +12,20 @@ import org.jsoup.nodes.Document;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 /**
  * The task of the Crawler is fetching HTML pages from urls and sending it to the {@link crawlingmodule.DataProcessor}.
  * The lifecycle of the Crawler starts by sending a {@link message.Message.MessageType REQUEST_URL} {@link message.Message} to the
- * {@link crawlingmodule.Module} to request an url. When an url is received, it will crawl the web with {@link #doCrawl(String)}.
+ * {@link crawlingmodule.Module} to request an url. When an url is received, it will crawl the web with {@link #doCrawl(String, int)}.
  * When done, the Crawler will send the resulting HTML {@link org.jsoup.nodes.Document} to the {@link crawlingmodule.DataProcessor}.
  * <p/>
  * Created by KrisMinkjan on 14-2-2015.
  */
 public class Crawler extends UntypedActor {
+
+    private final static Logger LOGGER = Logger.getLogger(Crawler.class.getName());
+
     /**
      * This Crawler's associated {@link crawlingmodule.DataProcessor}.
      */
@@ -30,7 +35,7 @@ public class Crawler extends UntypedActor {
      * The crawl delay is the time between consequent crawl request. The Crawler will space at least this amount of time
      * between requests.
      */
-    private int CRAWL_DELAY = 150;
+    private int CRAWL_DELAY = 120;
     private final boolean verbose;
 
     /**
@@ -86,13 +91,15 @@ public class Crawler extends UntypedActor {
      * @param urlData The url to be crawled.
      */
     private void doCrawl(String urlData, int depth) {
+        LOGGER.info("Crawler: DoCrawl");
+
         try {
+            long startTime = System.nanoTime();
             Document doc = Jsoup.connect(urlData).timeout(1000).get();
+            LOGGER.info("Crawl time: " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS));
             processor.tell(new MessageDocument(doc, depth), getSelf());
         } catch (IOException e) {
-            if (verbose) {
-                System.out.println("error: " + e.getLocalizedMessage() + "\n url: " + urlData);
-            }
+            LOGGER.warning("error: " + e.getLocalizedMessage() + "\n url: " + urlData);
         }
     }
 

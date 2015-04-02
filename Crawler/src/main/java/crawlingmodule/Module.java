@@ -10,11 +10,16 @@ import util.URLData;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
  * A Module regulates the crawling and analysing of html pages. It is build so that
@@ -25,10 +30,15 @@ import java.util.concurrent.TimeUnit;
  */
 public class Module extends UntypedActor {
 
+    private final static Logger LOGGER = Logger.getLogger(Module.class.getName());
+
     /**
      * This Module's id
      */
     private final int id;
+
+    private int currentSearchId;
+    private String currentTag = "java";
 
     /**
      * The Module's child components.
@@ -74,6 +84,7 @@ public class Module extends UntypedActor {
 
     @Override
     public void preStart() throws Exception {
+        LOGGER.info("Module started");
         /* Notify the child Actors to start */
         crawler.tell(new Message(Message.MessageType.MODULE_NOTIFY), getSelf());
         processor.tell(new Message(Message.MessageType.MODULE_NOTIFY), getSelf());
@@ -133,6 +144,8 @@ public class Module extends UntypedActor {
                 this.active = true;
                 activeUrlQueue.offer(new DepthData(ma.getStartUrl(), 1));
                 this.maxDepth = ma.getMaxDepth();
+                this.currentSearchId = ma.getSearchId();
+                this.currentTag = ma.getTag();
                 info.setStatus("active");
                 break;
             case ACTIVE_PROCESS:
@@ -144,6 +157,8 @@ public class Module extends UntypedActor {
     }
 
     private void processActive(ActiveURLData activeURLData) {
+        LOGGER.info("Module: ProcessActive");
+
         if (activeURLData.getDepth() <= maxDepth) {
             for (String link : activeURLData.getLinkList()) {
                 activeUrlQueue.add(new DepthData(link, activeURLData.getDepth() + 1));
@@ -156,8 +171,13 @@ public class Module extends UntypedActor {
                 info.setCurrentUrl(url.getUrl());
             }
             System.out.println(activeURLData.getUrl() + " | depth: " + activeURLData.getDepth());
+
+            activeURLData.setSearchId(currentSearchId);
+            activeURLData.setTag(currentTag);
+
             admin.tell(new MessageDoneActive(this.id, System.nanoTime() - previousStartTime, activeURLData), getSelf());
 
+            System.out.println("Active time: " + TimeUnit.MILLISECONDS.convert((System.nanoTime() - previousStartTime), TimeUnit.NANOSECONDS));
             previousStartTime = System.nanoTime();
         } else {
             System.out.println("DONE, continueing idle crawling");
@@ -178,6 +198,8 @@ public class Module extends UntypedActor {
      * @param urls The urls that will be added.
      */
     private void processUrls(List<String> urls, List<URLData> urlData, int depth) {
+        LOGGER.info("MODULE: amount = " + urlData.size());
+
         if (onOrder && urlList.isEmpty()) { // TODO this is funky
             onOrder = false;
             info.setStatus("idle");
@@ -206,6 +228,8 @@ public class Module extends UntypedActor {
      * @return The next url.
      */
     private String selectNextUrl() {
+        LOGGER.info("Module: urlList.size = " + urlList.size() + "domainMap.size = " + domainMap.size());
+
         String url = urlList.poll();
         if (!power && urlList.size() > 40) {
             try {
@@ -218,7 +242,7 @@ public class Module extends UntypedActor {
                     urlList.offer(url);
                     url = urlList.poll();
                     domain = getDomain(url);
-                    System.out.print("|");
+                    // System.out.print("|");
                 }
                 domainMap.put(domain, currentTime);
                 if (domainMap.size() > 100) {

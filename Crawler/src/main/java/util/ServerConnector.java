@@ -1,11 +1,13 @@
 package util;
 
 import akka.actor.ActorRef;
+import message.MessageActive;
 import message.MessageServer;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 /**
  * The ServerConnector provides the connection to the Server. Documentation regarding this matter is found here:
@@ -18,29 +20,34 @@ import java.util.Arrays;
  */
 public class ServerConnector {
 
+    private final static Logger LOGGER = Logger.getLogger(ServerConnector.class.getName());
+
     private final static String SERVER_ADRESS = "localhost";
     private final static int SERVER_PORT = 25678;
-    private final Socket socket;
-    private final ActorRef admin;
-    private final PrintWriter out;
-    private final SocketListener listener;
+    private Socket socket;
+    private ActorRef admin;
+    private PrintWriter out;
+    private SocketListener listener;
+
+    private final static int
+            ACTIVE_URL = 2,
+            ACTIVE_SEARCHID = 1,
+            ACTIVE_TAG = 3;
 
 
-    public ServerConnector(ActorRef admin) throws IOException {
-        System.out.println("TRYING TO SEND");
-        this.admin = admin;
-        socket = new Socket(SERVER_ADRESS, SERVER_PORT);
-        listener = new SocketListener(socket);
-        listener.start();
-        out = new PrintWriter(new BufferedOutputStream(socket.getOutputStream()), true);
-        out.println("checkin testcrawler");
-        out.flush();
-
-        out.println("searchpoll 1 1 1 1");
-        out.flush();
-
-        out.println("searchpoll 1 4 4 4");
-        out.flush();
+    public ServerConnector(ActorRef admin) {
+        LOGGER.info("Establishing connection with server...");
+        try {
+            this.admin = admin;
+            socket = new Socket(SERVER_ADRESS, SERVER_PORT);
+            listener = new SocketListener(socket);
+            listener.start();
+            out = new PrintWriter(new BufferedOutputStream(socket.getOutputStream()), true);
+            out.println("checkin testcrawler");
+            out.flush();
+        } catch (IOException e) {
+            LOGGER.warning("Connection with server NOT successful");
+        }
     }
 
     /**
@@ -77,7 +84,7 @@ public class ServerConnector {
 
         @Override
         public void run() {
-            System.out.println("Crawler connected and listening...");
+            LOGGER.info("Crawler connected and listening...");
             try {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(
                         socket.getInputStream()));
@@ -86,15 +93,17 @@ public class ServerConnector {
                     line = reader.readLine();
 
                     String[] args = line.trim().split(" ");
-                    System.out.println("Server input: " + Arrays.toString(args));
+                    LOGGER.info("Server input: " + Arrays.toString(args));
 
                     /* Analyse the input */
                     switch (args[0]) {
                         case "activecrawl":
                             System.out.println("SERVER: ACTIVE");
-                            admin.tell(new MessageServer(args[2], false), null);
+                            admin.tell(new MessageActive(args[ACTIVE_URL], 3, Integer.parseInt(args[ACTIVE_SEARCHID]),
+                                    args[ACTIVE_TAG]), null);
+//                            admin.tell(new MessageServer(args[2], false), null);
                             break;
-                        case "updatedaabase":
+                        case "updatedatabase":
                             System.out.println("SERVER: REFRESH");
                             admin.tell(new MessageServer("", true), null);
                             break;

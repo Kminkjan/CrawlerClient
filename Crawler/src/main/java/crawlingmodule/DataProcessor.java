@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -25,6 +26,8 @@ import java.util.regex.Pattern;
  * Created by KrisMinkjan on 14-2-2015.
  */
 public class DataProcessor extends UntypedActor {
+
+    private final static Logger LOGGER = Logger.getLogger(DataProcessor.class.getName());
 
     private ActorRef module;
 
@@ -72,7 +75,8 @@ public class DataProcessor extends UntypedActor {
      * @param doc The document to process
      */
     private void processDocument(Document doc, int depth) {
-//        System.out.println("process: " + doc.location() + " " + depth);
+        LOGGER.info("Processor: buffer.size = " + visitedUrls.size() + " depth = " + depth);
+
         if (doc == null) {
             System.out.println("document is null");
         } else {
@@ -121,7 +125,7 @@ public class DataProcessor extends UntypedActor {
                             visitedUrls.clear();
                             visitedUrls.addAll(switchBuffer);
                             switchBuffer.clear();
-                            System.out.println("Buffer reset");
+                            LOGGER.info("Buffer reset");
                         } else {
                             switchBuffer.add(potentialUrl);
                         }

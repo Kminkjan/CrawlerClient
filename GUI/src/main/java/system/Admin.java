@@ -7,8 +7,6 @@ import util.DatabaseConnector;
 import util.ServerConnector;
 import util.URLData;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,17 +22,13 @@ public class Admin extends UntypedActor {
     private static final int BUFFER_SIZE = 200;
     private final DatabaseConnector databaseConnector = new DatabaseConnector();
     /* Server comms stuff */
-    private final LinkedList<String> activeList = new LinkedList<String>();
+    private final LinkedList<MessageActive> activeList = new LinkedList<MessageActive>();
     private boolean orderNeeded;
     private ServerConnector serverConnector;
 
     public Admin(CrawlerSystem system) {
         this.system = system;
-        try {
-            this.serverConnector = new ServerConnector(getSelf());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.serverConnector = new ServerConnector(getSelf());
     }
 
     @Override
@@ -52,7 +46,7 @@ public class Admin extends UntypedActor {
                 /* Check for availability */
                 if (m2.isAvailable()) {
                     if (!activeList.isEmpty()) {
-                        getSender().tell(new MessageActive(activeList.pollFirst(), 3), getSelf());
+                        getSender().tell(activeList.pollFirst(), getSelf());
                     } else if (orderNeeded) {
                         getSender().tell(new MessageOrder(databaseConnector.outdatedDatabaseUrls()), getSelf());
                         orderNeeded = false;
@@ -84,17 +78,19 @@ public class Admin extends UntypedActor {
             case SERVER:
                 MessageServer messageServer = (MessageServer) message;
                 if (!messageServer.getActiveNeeded().isEmpty()) {
-                    activeList.add(messageServer.getActiveNeeded());
+                    // activeList.add(messageServer.getActiveNeeded());
                 }
                 if (!orderNeeded) {
                     this.orderNeeded = messageServer.isRefresh();
                 }
                 break;
+            case ACTIVE:
+                activeList.add((MessageActive) message);
         }
     }
 
     private void debugPrint(List<URLData> urlDataList) {
-        for(URLData urlData : urlDataList) {
+        for (URLData urlData : urlDataList) {
             System.out.println(urlData.getUrl() + " " + urlData.getTag());
         }
     }

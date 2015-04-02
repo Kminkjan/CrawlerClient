@@ -7,6 +7,8 @@ import java.util.List;
  */
 public class ActiveURLData extends URLData implements Comparable<ActiveURLData> {
     private final int depth;
+    private int searchId;
+    private String tag;
     private final List<String> linkList;
 
     public ActiveURLData(String url, String tag, int rating,int depth, List<String> linkList) {
@@ -26,5 +28,22 @@ public class ActiveURLData extends URLData implements Comparable<ActiveURLData> 
     @Override
     public int compareTo(ActiveURLData d) {
         return this.depth - d.getDepth();
+    }
+
+    public int getSearchId() {
+        return searchId;
+    }
+
+    public void setSearchId(int searchId) {
+        this.searchId = searchId;
+    }
+
+    @Override
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 }
