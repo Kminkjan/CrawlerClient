@@ -3,15 +3,10 @@ package crawlingmodule;
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import message.*;
-import util.ActiveURLData;
-import util.DepthData;
-import util.ModuleInfo;
-import util.URLData;
+import util.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,7 +45,7 @@ public class Module extends UntypedActor {
     /**
      * Object that where info about this Module is stored. Used for the GUI.
      */
-    private final ModuleInfo info;
+    private final SimpleModuleInfo info;
 
     /**
      * Time in milliseconds since the last received result from the {@link crawlingmodule.DataProcessor}.
@@ -73,7 +68,7 @@ public class Module extends UntypedActor {
      * @param processor This Module's {@link DataProcessor}.
      * @param info      The info object of this module.
      */
-    public Module(ActorRef crawler, ActorRef processor, ModuleInfo info, ActorRef admin, int id) {
+    public Module(ActorRef crawler, ActorRef processor, SimpleModuleInfo info, ActorRef admin, int id) {
         this.crawler = crawler;
         this.processor = processor;
         this.admin = admin;
@@ -89,6 +84,9 @@ public class Module extends UntypedActor {
         crawler.tell(new Message(Message.MessageType.MODULE_NOTIFY), getSelf());
         processor.tell(new Message(Message.MessageType.MODULE_NOTIFY), getSelf());
 //        activeUrlQueue.add(new DepthData("http://jsoup.org", 1));
+        urlList.add("http://www.nu.nl/");
+        urlList.add("http://www.microsoft.com/");
+        urlList.add("https://news.google.com/");
     }
 
     @Override
@@ -237,12 +235,22 @@ public class Module extends UntypedActor {
                 long currentTime = System.nanoTime();
                 String domain = getDomain(url);
 
+                int times = 0;
+
                 /* Search for an url that can be crawled */
                 while ((domainMap.containsKey(domain) && POLITE_DELAY > (currentTime - domainMap.get(domain)))) {
                     urlList.offer(url);
                     url = urlList.poll();
                     domain = getDomain(url);
                     // System.out.print("|");
+                    if(++times % 40 == 0) {
+                        currentTime = System.nanoTime();
+                        LOGGER.warning("Url selection takes a long time! Times:  " + times + " used time: " + currentTime);
+                        if (times > 500) {
+                            LOGGER.severe("System stalled and is terminated");
+                            System.exit(1);
+                        }
+                    }
                 }
                 domainMap.put(domain, currentTime);
                 if (domainMap.size() > 100) {

@@ -13,7 +13,6 @@ import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -31,7 +30,7 @@ public class Main extends Application {
             handler = new FileHandler("crawler_log" + date +".txt");
             handler.setFormatter(new SimpleFormatter());
             logger.addHandler(handler);
-            logger.setLevel(Level.CONFIG);
+            logger.setLevel(Level.WARNING);
         } catch (IOException e) {
             e.printStackTrace();
         }

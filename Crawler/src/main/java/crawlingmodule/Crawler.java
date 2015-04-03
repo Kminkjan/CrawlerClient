@@ -99,7 +99,7 @@ public class Crawler extends UntypedActor {
             LOGGER.info("Crawl time: " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS));
             processor.tell(new MessageDocument(doc, depth), getSelf());
         } catch (IOException e) {
-            LOGGER.warning("error: " + e.getLocalizedMessage() + "\n url: " + urlData);
+            LOGGER.info("error: " + e.getLocalizedMessage() + "\n url: " + urlData);
         }
     }
 

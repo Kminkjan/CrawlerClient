@@ -9,6 +9,7 @@ import crawlingmodule.Module;
 import message.Message;
 import message.MessageEditValue;
 import util.ModuleInfo;
+import util.SimpleModuleInfo;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -41,14 +42,12 @@ public class CrawlerSystem {
     /**
      * Add a {@link crawlingmodule.Module} to the system.
      *
-     * @return The info about the m
      */
-    public ModuleInfo addModule() {
-        ModuleInfo tempInfo = new ModuleInfo("", "starting", "http://jsoup.org", "0");
+    public void addModule() {
+        // ModuleInfo tempInfo = new ModuleInfo("", "starting", "http://jsoup.org", "0");
         ActorRef processor = system.actorOf(Props.create(DataProcessor.class));
         ActorRef crawler = system.actorOf(Props.create(Crawler.class, processor, verbose));
-        ActorRef module = system.actorOf(Props.create(Module.class, crawler, processor, tempInfo, admin, 0));
-        return tempInfo;
+        ActorRef module = system.actorOf(Props.create(Module.class, crawler, processor, new SimpleModuleInfo(), admin, 0));
     }
 
     /**

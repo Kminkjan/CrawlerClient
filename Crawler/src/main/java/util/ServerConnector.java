@@ -22,7 +22,7 @@ public class ServerConnector {
 
     private final static Logger LOGGER = Logger.getLogger(ServerConnector.class.getName());
 
-    private final static String SERVER_ADRESS = "localhost";
+    private final static String SERVER_ADRESS = "178.21.117.113";//"localhost";
     private final static int SERVER_PORT = 25678;
     private Socket socket;
     private ActorRef admin;

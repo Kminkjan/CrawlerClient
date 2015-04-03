@@ -96,7 +96,7 @@ public class Analyser {
             tag = tag.replaceAll("[,|.|:|;|!|\\?|(|)|^|+|/|&|$|%|#|'|\\-|@]", "").trim().toLowerCase();
 
             /* Add the counter for that tag */
-            if (!tag.isEmpty() && tag.length() > 2 && !tag.matches(".*\\d.*") && !FILTERS.matcher(tag).matches()) {
+            if (!tag.isEmpty() && tag.length() > 2 && tag.length() <= 12 && !tag.contains("?") && !tag.matches(".*\\d.*") && !FILTERS.matcher(tag).matches()) {
                 if (map.containsKey(tag)) {
                     map.put(tag, map.get(tag) + VALUE);
                 } else {
@@ -127,6 +127,9 @@ public class Analyser {
             if (entry != null) {
                 while (entry.getValue().isEmpty() && !treeMap.isEmpty()) {
                     entry = treeMap.pollLastEntry();
+                }
+                if (entry.getKey() < META_VALUE) {
+                    break;
                 }
                 urlDataList.add(new URLData(link, entry.getValue(), entry.getKey()));
             }

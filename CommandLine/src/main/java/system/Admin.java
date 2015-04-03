@@ -25,7 +25,7 @@ public class Admin extends UntypedActor {
     /**
      * Size of the {@link #dataBuffer}
      */
-    private static final int BUFFER_SIZE = 200;
+    private static final int BUFFER_SIZE = 20;
 
 
     private final DatabaseConnector databaseConnector = new DatabaseConnector();

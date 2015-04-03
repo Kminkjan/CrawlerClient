@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by KrisMinkjan on 14-2-2015.
  */
-public class ModuleInfo {
+public class ModuleInfo extends SimpleModuleInfo {
     private final SimpleStringProperty id;
     private final SimpleStringProperty status;
 
