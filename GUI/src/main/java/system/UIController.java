@@ -40,6 +40,8 @@ public class UIController implements Initializable {
     @FXML
     private Label urlmin;
     @FXML
+    private Label connectionstatus;
+    @FXML
     private Label totalurls;
     @FXML
     private TableView<ModuleInfo> tableView;
@@ -48,9 +50,10 @@ public class UIController implements Initializable {
     @FXML
     private LineChart<Integer, Integer> lineChart;
 
-    private final SimpleStringProperty urlminProperty = new SimpleStringProperty(""), urltotalProperty = new SimpleStringProperty("");
+    private final SimpleStringProperty urlminProperty = new SimpleStringProperty(""), urltotalProperty = new SimpleStringProperty(""),
+            connectionStatusProperty = new SimpleStringProperty("");
     private int count;
-    private CrawlerSystem system;
+    private static CrawlerSystem system;
 
     private ObservableList<XYChart.Data> dataList =
             FXCollections.observableArrayList(
@@ -58,7 +61,7 @@ public class UIController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        this.system = new CrawlerSystem(dataList, urlminProperty, urltotalProperty);
+        this.system = new CrawlerSystem(dataList, urlminProperty, urltotalProperty, connectionStatusProperty);
 
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -82,9 +85,10 @@ public class UIController implements Initializable {
 //                } else {
 //                    System.out.println("You cant delete a thread if there isn't any active thread");
 //                }
-                system.activate("https://java.com/nl/download/");
+                //system.activate("https://java.com/nl/download/");
 //                system.activate("http://www.jsoup.org");
 //                system.refresh();
+                system.shutDown();
             }
         });
 
@@ -104,6 +108,7 @@ public class UIController implements Initializable {
 
         urlmin.textProperty().bind(urlminProperty);
         totalurls.textProperty().bind(urltotalProperty);
+        connectionstatus.textProperty().bind(connectionStatusProperty);
 
         Timeline timeline = new Timeline(
                 new KeyFrame(Duration.seconds(1),
@@ -118,12 +123,14 @@ public class UIController implements Initializable {
         );
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.play();
+
+
     }
 
     /**
      * Stops the system
      */
-    public void stop() {
+    public static void stop() {
         system.shutDown();
     }
 }

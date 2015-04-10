@@ -8,6 +8,7 @@ import org.jsoup.select.Elements;
 import util.ActiveURLData;
 import util.URLData;
 
+import javax.xml.bind.Element;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -96,7 +97,6 @@ public class DataProcessor extends UntypedActor {
                 module.tell(new MessageActiveDone(activeURLData), getSelf());
                 // TODO urlData = analyser.analyseActive(doc); rate the page by url
             }
-
         }
     }
 
@@ -115,12 +115,13 @@ public class DataProcessor extends UntypedActor {
             /* Try to select 5 urls */
             for (int i = 0; i < amount; i++) {
                 String potentialUrl = elements.get(random.nextInt(elementCount)).attr("abs:href");
+                //System.out.println(potentialUrl);
                 if (potentialUrl != null && legitUrl(potentialUrl)) {
 
                     /* Check if the buffer is filled */
-                    if (visitedUrls.size() > 190) {
+                    if (visitedUrls.size() > 500) {
                         /* fill buffer */
-                        if (visitedUrls.size() > 200) {
+                        if (visitedUrls.size() > 700) {
                             /* Reset the visited hashmap and fill with the buffer */
                             visitedUrls.clear();
                             visitedUrls.addAll(switchBuffer);
@@ -153,6 +154,6 @@ public class DataProcessor extends UntypedActor {
         } catch (URISyntaxException e) {
             return false;
         }
-        return !url.isEmpty() && url.length() < 128 && !FILTERS.matcher(url).matches() && !EXCLUDE.matcher(url).matches() && !url.contains("wiki") && !url.contains("youtube") && !url.contains("twitter") && !visitedUrls.contains(url);
+        return !url.isEmpty() && url.length() < 128 && !FILTERS.matcher(url).matches() && !EXCLUDE.matcher(url).matches() && !url.contains("google") && !url.contains("wiki") && !url.contains("youtube") && !url.contains("twitter") && !visitedUrls.contains(url);
     }
 }

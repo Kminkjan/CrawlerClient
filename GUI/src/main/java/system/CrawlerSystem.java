@@ -6,11 +6,13 @@ import akka.actor.Props;
 import crawlingmodule.Crawler;
 import crawlingmodule.DataProcessor;
 import crawlingmodule.Module;
-import message.*;
-import util.DatabaseConnector;
-import util.ModuleInfo;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.chart.XYChart;
+import message.Message;
+import message.MessageEditValue;
+import message.MessageServer;
+import util.ModuleInfo;
+import util.ServerConnector;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -33,15 +35,19 @@ public class CrawlerSystem {
 
     private SimpleStringProperty urlmin, urltotal;
 
+    private ServerConnector serverConnector;
+
 
     /**
      * Creates the System.
      */
-    public CrawlerSystem(List<XYChart.Data> dataList, SimpleStringProperty urlminProperty, SimpleStringProperty urltotalProperty) {
+    public CrawlerSystem(List<XYChart.Data> dataList, SimpleStringProperty urlminProperty, SimpleStringProperty urltotalProperty,
+                         SimpleStringProperty connectionProperty) {
+
         this.system = ActorSystem.create("crawler");
         this.modulelist = new LinkedList<ActorRef>();
 
-        this.admin = system.actorOf(Props.create(Admin.class, this));
+        this.admin = system.actorOf(Props.create(Admin.class, this, connectionProperty));
 
         this.dataList = dataList;
 
@@ -56,13 +62,15 @@ public class CrawlerSystem {
      * @return The info about the m
      */
     public ModuleInfo addModule() {
-        ModuleInfo tempInfo = new ModuleInfo("thread " + threadCount++, "starting", "http://jsoup.org", "0");
+        ModuleInfo tempInfo = new ModuleInfo("thread " + threadCount++, "starting", "pending", "0");
         ActorRef processor = system.actorOf(Props.create(DataProcessor.class));
         ActorRef crawler = system.actorOf(Props.create(Crawler.class, processor, true));
         ActorRef module = system.actorOf(Props.create(Module.class, crawler, processor, tempInfo, admin, idCounter));
 
         modulelist.push(module);
         infoHashMap.put(idCounter++, tempInfo);
+
+        serverConnector.tellServer("addthread");
 
         return tempInfo;
     }
@@ -84,8 +92,15 @@ public class CrawlerSystem {
      * Shuts down the system
      */
     public void shutDown() {
+        System.out.println("shutdown");
+        system.stop(admin);
         system.shutdown();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
         }
+    }
 
     /**
      * Sets the delay between crawler requests.
@@ -132,8 +147,13 @@ public class CrawlerSystem {
         }
     }
 
+    public void setServerConnector(ServerConnector connector) {
+        this.serverConnector = connector;
+    }
+
     /**
      * Tell the admin to crawl active
+     *
      * @param startUrl
      */
     public void activate(String startUrl) {

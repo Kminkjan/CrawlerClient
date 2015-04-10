@@ -178,6 +178,43 @@ public class DatabaseConnector {
         return query.substring(0, query.length() - 1) + " ON DUPLICATE KEY UPDATE amount = amount + 1;";
     }
 
+    public List<String> getRandomUrl() {
+        String query = "SELECT url FROM `url_data` ORDER BY RAND() LIMIT 1;";
+
+        long startTime = System.nanoTime();
+
+        List<String> updateList = new ArrayList<String>();
+
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultset = null;
+        try {
+            connection = getDBConnection();
+            statement = connection.createStatement();
+            resultset = statement.executeQuery("SELECT url FROM url_data ORDER BY RAND() LIMIT 5;");
+            while (resultset.next()) {
+//                System.out.println(resultset.getString(1));
+                updateList.add(resultset.getString(1));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {if (resultset != null) resultset.close();} catch (Exception ignored) {}
+            try {if (statement != null) statement.close();} catch (Exception ignored) {}
+            try {if (connection != null) connection.close();} catch (Exception ignored) {}
+        }
+
+        for(String s : updateList) {
+            System.out.println(s);
+        }
+
+        System.out.println("Update:\nQuery: randomurl\nTime: "
+                + TimeUnit.MILLISECONDS.convert(
+                (System.nanoTime() - startTime), TimeUnit.NANOSECONDS));
+
+        return updateList;
+    }
+
     /**
      * Retrieves the domain String from an url.
      *

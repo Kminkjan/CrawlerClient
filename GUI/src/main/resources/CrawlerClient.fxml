@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.paint.*?>
 <?import java.lang.*?>
 <?import javafx.scene.chart.*?>
 <?import javafx.scene.control.cell.*?>
@@ -11,7 +12,7 @@
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.*?>
 
-<VBox maxHeight="400.0" maxWidth="600.0" minHeight="400.0" minWidth="600.0" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="system.UIController">
+<VBox maxHeight="400.0" maxWidth="600.0" minHeight="400.0" minWidth="600.0" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="system.UIController">
     <children>
         <HBox alignment="CENTER_LEFT">
             <children>
@@ -82,9 +83,6 @@
             <items>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="196.0" prefWidth="551.0" SplitPane.resizableWithParent="false">
                     <children>
-                        <CheckBox layoutX="14.0" layoutY="14.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="113.0" text="Force Timeout" />
-                        <CheckBox layoutX="14.0" layoutY="31.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="158.0" text="Power Mode (not polite)" textFill="RED" />
-                        <CheckBox layoutX="14.0" layoutY="48.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="100.0" text="Low Profile 1" />
                         <Label layoutX="14.0" layoutY="65.0" />
                         <LineChart fx:id="lineChart" createSymbols="false" layoutX="276.0" layoutY="7.0" prefHeight="149.0" prefWidth="271.0">
                             <xAxis>
@@ -94,11 +92,13 @@
                                 <NumberAxis side="LEFT" />
                             </yAxis>
                         </LineChart>
-                        <Label layoutX="14.0" layoutY="65.0" text="Total url/min: " />
-                        <Label fx:id="urlmin" layoutX="89.0" layoutY="65.0" text="0" />
-                        <Label layoutX="14.0" layoutY="82.0" text="Total urls: " />
-                        <Label fx:id="totalurls" layoutX="89.0" layoutY="82.0" text="0" />
-                        <Label layoutX="3.0" layoutY="136.0" text="v1.2" />
+                        <Label layoutX="14.0" layoutY="31.0" text="Total url/min: " />
+                        <Label fx:id="urlmin" layoutX="89.0" layoutY="31.0" text="0" />
+                        <Label layoutX="14.0" layoutY="48.0" text="Total urls: " />
+                        <Label fx:id="totalurls" layoutX="89.0" layoutY="48.0" text="0" />
+                        <Label layoutX="3.0" layoutY="136.0" text="v1.4 release candidate" />
+                  <Label layoutX="14.0" layoutY="14.0" text="Server:" />
+                  <Label fx:id="connectionstatus" layoutX="89.0" layoutY="14.0" text="pending" textFill="#1100ff" />
                     </children>
                 </AnchorPane>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="158.0" prefWidth="121.0">

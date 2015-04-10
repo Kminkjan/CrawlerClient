@@ -1,11 +1,15 @@
 package util;
 
 import akka.actor.ActorRef;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import message.MessageActive;
 import message.MessageServer;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -22,12 +26,15 @@ public class ServerConnector {
 
     private final static Logger LOGGER = Logger.getLogger(ServerConnector.class.getName());
 
-    private final static String SERVER_ADRESS = "178.21.117.113";//"localhost";
+    private final static String SERVER_ADRESS = "178.21.117.113";
+//    private final static String SERVER_ADRESS = "localhost";
     private final static int SERVER_PORT = 25678;
     private Socket socket;
     private ActorRef admin;
     private PrintWriter out;
     private SocketListener listener;
+
+    private String crawlerName = "unknown";
 
     private final static int
             ACTIVE_URL = 2,
@@ -35,18 +42,40 @@ public class ServerConnector {
             ACTIVE_TAG = 3;
 
 
-    public ServerConnector(ActorRef admin) {
+    public ServerConnector(ActorRef admin, final SimpleStringProperty connectionProperty) {
         LOGGER.info("Establishing connection with server...");
+
+        try {
+            InetAddress addr;
+            addr = InetAddress.getLocalHost();
+            crawlerName = addr.getHostName() + (int)(Math.random()*99);
+        } catch (UnknownHostException ex)
+        {
+            LOGGER.warning("Hostname can not be resolved");
+        }
+
         try {
             this.admin = admin;
             socket = new Socket(SERVER_ADRESS, SERVER_PORT);
             listener = new SocketListener(socket);
             listener.start();
             out = new PrintWriter(new BufferedOutputStream(socket.getOutputStream()), true);
-            out.println("checkin testcrawler");
+            out.println("checkin " + crawlerName);
             out.flush();
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    connectionProperty.set("connected");
+                }
+            });
         } catch (IOException e) {
             LOGGER.warning("Connection with server NOT successful");
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    connectionProperty.set("failed");
+                }
+            });
         }
     }
 
@@ -56,8 +85,10 @@ public class ServerConnector {
      * @param message The message to be send
      */
     public void tellServer(String message) {
-        out.println(message);
-        out.flush();
+        if (socket != null && socket.isConnected()) {
+            out.println(message);
+            out.flush();
+        }
     }
 
     /**
@@ -65,10 +96,16 @@ public class ServerConnector {
      *
      * @throws IOException
      */
-    public void stop() throws IOException {
-        listener.interrupt();
-        socket.close();
-        System.out.println("Socket closed");
+    public void stopConnection() throws IOException {
+        if (socket != null) {
+            try {
+                listener.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            socket.close();
+            LOGGER.info("Socket closed");
+        }
     }
 
     /**
@@ -93,22 +130,25 @@ public class ServerConnector {
                     line = reader.readLine();
 
                     String[] args = line.trim().split(" ");
-                    LOGGER.info("Server input: " + Arrays.toString(args));
+                    LOGGER.warning("Server input: " + Arrays.toString(args));
 
                     /* Analyse the input */
                     switch (args[0]) {
                         case "activecrawl":
-                            System.out.println("SERVER: ACTIVE");
+                            LOGGER.info("SERVER: ACTIVE");
                             admin.tell(new MessageActive(args[ACTIVE_URL], 3, Integer.parseInt(args[ACTIVE_SEARCHID]),
                                     args[ACTIVE_TAG]), null);
 //                            admin.tell(new MessageServer(args[2], false), null);
                             break;
                         case "updatedatabase":
-                            System.out.println("SERVER: REFRESH");
+                            LOGGER.info("SERVER: REFRESH");
                             admin.tell(new MessageServer("", true), null);
                             break;
+                        case "shutdown":
+                            active = false;
+                            break;
                         default:
-                            System.out.println("SERVER INPUT: " + line);
+                            //LOGGER.info("SERVER INPUT: " + line);
                     }
                 }
             } catch (IOException e) {

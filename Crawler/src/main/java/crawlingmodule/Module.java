@@ -84,9 +84,6 @@ public class Module extends UntypedActor {
         crawler.tell(new Message(Message.MessageType.MODULE_NOTIFY), getSelf());
         processor.tell(new Message(Message.MessageType.MODULE_NOTIFY), getSelf());
 //        activeUrlQueue.add(new DepthData("http://jsoup.org", 1));
-        urlList.add("http://www.nu.nl/");
-        urlList.add("http://www.microsoft.com/");
-        urlList.add("https://news.google.com/");
     }
 
     @Override
@@ -99,8 +96,12 @@ public class Module extends UntypedActor {
                 }
                 crawlerNotified = true;
 
-                getSender().tell(new MessageUrl("https://java.com/nl/download/", 0), getSelf());
-                info.setCurrentUrl("https://java.com/nl/download/");
+                DatabaseConnector dbc = new DatabaseConnector();
+
+                urlList.addAll(dbc.getRandomUrl());
+                getSender().tell(new MessageUrl(selectNextUrl(), 0), getSelf());
+                //getSender().tell(new MessageUrl("https://java.com/nl/download/", 0), getSelf());
+                //info.setCurrentUrl("https://java.com/nl/download/");
                 break;
             case PROCESSOR_NOTIFY:
                 if (crawlerNotified) {
@@ -140,7 +141,17 @@ public class Module extends UntypedActor {
             case ACTIVE:
                 MessageActive ma = (MessageActive) message;
                 this.active = true;
-                activeUrlQueue.offer(new DepthData(ma.getStartUrl(), 1));
+                String starturl = ma.getStartUrl();
+                if (starturl.contains("google")) {
+                    LOGGER.warning("google detected");
+                    Googler g = new Googler();
+                    for(String s : g.getDataFromGoogle(starturl)) {
+                        activeUrlQueue.offer(new DepthData(s, 1));
+                        System.out.println(s);
+                    }
+                } else {
+                    activeUrlQueue.offer(new DepthData(starturl, 1));
+                }
                 this.maxDepth = ma.getMaxDepth();
                 this.currentSearchId = ma.getSearchId();
                 this.currentTag = ma.getTag();
@@ -179,6 +190,7 @@ public class Module extends UntypedActor {
             previousStartTime = System.nanoTime();
         } else {
             System.out.println("DONE, continueing idle crawling");
+            admin.tell(new Message(Message.MessageType.MODULE_NOTIFY), getSelf());
             active = false;
             info.setStatus("idle");
             // urlList.addAll(activeURLData.getLinkList().subList(0, 20));
@@ -245,7 +257,7 @@ public class Module extends UntypedActor {
                     // System.out.print("|");
                     if(++times % 40 == 0) {
                         currentTime = System.nanoTime();
-                        LOGGER.warning("Url selection takes a long time! Times:  " + times + " used time: " + currentTime);
+                        LOGGER.warning("Url selection takes a long time! Times:  " + times + " used time: " + currentTime + " url: " + url);
                         if (times > 500) {
                             LOGGER.severe("System stalled and is terminated");
                             System.exit(1);

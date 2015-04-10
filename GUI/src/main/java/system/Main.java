@@ -24,7 +24,7 @@ public class Main extends Application {
 
     public static void main(String[] args) {
         Logger logger =  Logger.getLogger("");
-        FileHandler handler = null;
+        FileHandler handler;
         try {
             String date = new SimpleDateFormat("yyMMddhhmm").format(new Date());
             handler = new FileHandler("crawler_log" + date +".txt");
@@ -54,6 +54,7 @@ public class Main extends Application {
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
+                UIController.stop();
                 Platform.exit();
                 System.exit(0);
             }

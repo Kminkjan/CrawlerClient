@@ -2,6 +2,7 @@ package system;
 
 import akka.actor.UntypedActor;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import message.*;
 import util.DatabaseConnector;
 import util.ServerConnector;
@@ -26,15 +27,17 @@ public class Admin extends UntypedActor {
     private boolean orderNeeded;
     private ServerConnector serverConnector;
 
-    public Admin(CrawlerSystem system) {
+    public Admin(CrawlerSystem system, SimpleStringProperty connectionProperty) {
         this.system = system;
-        this.serverConnector = new ServerConnector(getSelf());
+        this.serverConnector = new ServerConnector(getSelf(), connectionProperty);
+        system.setServerConnector(serverConnector);
     }
 
     @Override
     public void postStop() throws Exception {
         super.postStop();
-        serverConnector.stop();
+        serverConnector.tellServer("shutdown");
+        serverConnector.stopConnection();
     }
 
     @Override
@@ -86,6 +89,10 @@ public class Admin extends UntypedActor {
                 break;
             case ACTIVE:
                 activeList.add((MessageActive) message);
+                break;
+            case MODULE_NOTIFY: // done crawling active
+                serverConnector.tellServer("addthread");
+                break;
         }
     }
 

@@ -7,6 +7,7 @@ import message.Message;
 import message.MessageDocument;
 import message.MessageEditValue;
 import message.MessageUrl;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -95,8 +96,14 @@ public class Crawler extends UntypedActor {
 
         try {
             long startTime = System.nanoTime();
-            Document doc = Jsoup.connect(urlData).timeout(1000).get();
-            LOGGER.info("Crawl time: " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS));
+            Connection c = Jsoup.connect(urlData).userAgent(
+                    "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)").timeout(1000);//.get();
+            //Document doc = Jsoup.connect(urlData).timeout(1000).get();
+            //long connectTime =TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+            Connection.Response r = c.execute();
+            long connectTime =TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+            Document doc = r.parse();//c.get();
+            LOGGER.info("Crawl time: " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS) + " connect: " + connectTime);
             processor.tell(new MessageDocument(doc, depth), getSelf());
         } catch (IOException e) {
             LOGGER.info("error: " + e.getLocalizedMessage() + "\n url: " + urlData);
