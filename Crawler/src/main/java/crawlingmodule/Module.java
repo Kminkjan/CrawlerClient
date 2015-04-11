@@ -99,6 +99,7 @@ public class Module extends UntypedActor {
                 DatabaseConnector dbc = new DatabaseConnector();
 
                 urlList.addAll(dbc.getRandomUrl());
+
                 getSender().tell(new MessageUrl(selectNextUrl(), 0), getSelf());
                 //getSender().tell(new MessageUrl("https://java.com/nl/download/", 0), getSelf());
                 //info.setCurrentUrl("https://java.com/nl/download/");
@@ -258,9 +259,13 @@ public class Module extends UntypedActor {
                     if(++times % 40 == 0) {
                         currentTime = System.nanoTime();
                         LOGGER.warning("Url selection takes a long time! Times:  " + times + " used time: " + currentTime + " url: " + url);
-                        if (times > 500) {
-                            LOGGER.severe("System stalled and is terminated");
-                            System.exit(1);
+                        if (times > 119) {
+                            LOGGER.severe("System stalled and is reset");
+                            //System.exit(1);
+
+                            urlList.clear();
+                            DatabaseConnector dbc = new DatabaseConnector();
+                            urlList.addAll(dbc.getRandomUrl());
                         }
                     }
                 }

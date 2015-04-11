@@ -26,7 +26,8 @@ public class ServerConnector {
 
     private final static Logger LOGGER = Logger.getLogger(ServerConnector.class.getName());
 
-    private final static String SERVER_ADRESS = "178.21.117.113";
+    private final static String SERVER_ADRESS = "192.168.1.83";
+//    private final static String SERVER_ADRESS = "178.21.117.113";
 //    private final static String SERVER_ADRESS = "localhost";
     private final static int SERVER_PORT = 25678;
     private Socket socket;

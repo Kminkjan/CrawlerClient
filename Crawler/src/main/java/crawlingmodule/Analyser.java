@@ -21,7 +21,7 @@ public class Analyser {
      * Words to exclude (Mostly Conjunctions (http://en.wikipedia.org/wiki/Conjunction_(grammar)) and Articles)
      */
     private final static Pattern FILTERS = Pattern.compile("(a|the|an|me|my|i|we|it|for|if|or|but|so|all|as|on|off|thai|" +
-            "from|to|of|by|is|\\?|@|with)");
+            "from|to|of|by|is|\\?|@|with|get|now|download)");
 
     /**
      * Constants to attach values to HTML items.

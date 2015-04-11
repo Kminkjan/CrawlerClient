@@ -8,20 +8,24 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 /**
  * Provides a connection to the database
  * Created by KrisMinkjan on 3-3-2015.
  */
 public class DatabaseConnector {
+
+    private final static Logger LOGGER = Logger.getLogger(DatabaseConnector.class.getName());
+
     /**
      * String constants for the database connection
      */
     private final static String
-            HOST = "jdbc:mysql://178.21.117.113:3306/",
-            DATABASE = "telescope_db4",
-            USERNAME = "rooter",
-            PASSWORD = "haeshah3";
+            HOST = "jdbc:mysql://192.168.1.83:3306/",
+            DATABASE = "Telescope",
+            USERNAME = "crawler",
+            PASSWORD = "sdLeYHNdaRWjy5mn";
 
     public DatabaseConnector() {
         try {
@@ -50,7 +54,7 @@ public class DatabaseConnector {
             statement = connection.createStatement();
             statement.executeUpdate(constructQuery(urlDataList));
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.warning(e.getLocalizedMessage());
         } finally {
             try { if (statement != null) statement.close();} catch (Exception ignored) {}
             try { if (connection != null) connection.close();} catch (Exception ignored) {}

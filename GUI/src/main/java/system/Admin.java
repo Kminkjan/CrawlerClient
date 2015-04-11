@@ -20,7 +20,7 @@ import java.util.List;
 public class Admin extends UntypedActor {
     private final CrawlerSystem system;
     private final List<URLData> dataBuffer = new ArrayList<URLData>();
-    private static final int BUFFER_SIZE = 200;
+    private static final int BUFFER_SIZE = 5000;
     private final DatabaseConnector databaseConnector = new DatabaseConnector();
     /* Server comms stuff */
     private final LinkedList<MessageActive> activeList = new LinkedList<MessageActive>();

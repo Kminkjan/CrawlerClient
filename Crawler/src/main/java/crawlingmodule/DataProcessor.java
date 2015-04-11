@@ -154,6 +154,6 @@ public class DataProcessor extends UntypedActor {
         } catch (URISyntaxException e) {
             return false;
         }
-        return !url.isEmpty() && url.length() < 128 && !FILTERS.matcher(url).matches() && !EXCLUDE.matcher(url).matches() && !url.contains("google") && !url.contains("wiki") && !url.contains("youtube") && !url.contains("twitter") && !visitedUrls.contains(url);
+        return !url.isEmpty() && url.length() < 128 && !FILTERS.matcher(url).matches() && !EXCLUDE.matcher(url).matches() && !url.contains("google") && !url.contains("wiki") && !url.contains("youtube") && !url.contains("twitter") && !url.contains("facebook") && !visitedUrls.contains(url);
     }
 }
