@@ -43,7 +43,7 @@ public class ServerConnector {
             ACTIVE_TAG = 3;
 
 
-    public ServerConnector(ActorRef admin, final SimpleStringProperty connectionProperty) {
+    public ServerConnector(ActorRef admin, final UICallable uiCallable) {
         LOGGER.info("Establishing connection with server...");
 
         try {
@@ -63,20 +63,10 @@ public class ServerConnector {
             out = new PrintWriter(new BufferedOutputStream(socket.getOutputStream()), true);
             out.println("checkin " + crawlerName);
             out.flush();
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
-                    connectionProperty.set("connected");
-                }
-            });
+            uiCallable.updateConnectionStatus(("connected"));
         } catch (IOException e) {
             LOGGER.warning("Connection with server NOT successful");
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
-                    connectionProperty.set("failed");
-                }
-            });
+            uiCallable.updateConnectionStatus(("failed"));
         }
     }
 

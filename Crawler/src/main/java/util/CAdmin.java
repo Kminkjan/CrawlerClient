@@ -22,13 +22,16 @@ public class CAdmin extends UntypedActor{
     private final LinkedList<MessageActive> activeList;
     private boolean orderNeeded;
     private ServerConnector serverConnector;
+    private final UICallable uiCallable;
 
-    public CAdmin(CSystem system, SimpleStringProperty connectionProperty) {
+
+    // TODO the property
+    public CAdmin(CSystem system, UICallable uiCallable, ServerConnector serverConnector) {
         this.system = system;
-        this.serverConnector = new ServerConnector(getSelf(), connectionProperty);
-        system.setServerConnector(serverConnector);
-        activeList = new LinkedList<MessageActive>();
-        dataBuffer = new ArrayList<URLData>();
+        this.serverConnector = serverConnector;
+        this.uiCallable = uiCallable;
+        activeList = new LinkedList<>();
+        dataBuffer = new ArrayList<>();
     }
 
     @Override
@@ -61,6 +64,8 @@ public class CAdmin extends UntypedActor{
                     databaseConnector.putUrl(dataBuffer);
                     dataBuffer.clear();
                 }
+
+                uiCallable.updateInfo(m2.getModule(), m2.getMs());
 
                 break;
             case URL_DONE_ACTIVE:

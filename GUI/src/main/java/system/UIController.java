@@ -1,5 +1,7 @@
 package system;
 
+import javafx.application.Platform;
+import util.CSystem;
 import util.ModuleInfo;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -20,8 +22,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TableView;
 import javafx.util.Duration;
+import util.UICallable;
 
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 
 /**
@@ -29,7 +35,7 @@ import java.util.ResourceBundle;
  *
  * Created by KrisMinkjan on 13-2-2015.
  */
-public class UIController implements Initializable {
+public class UIController implements Initializable, UICallable {
 
     @FXML
     private Button addButton;
@@ -52,16 +58,18 @@ public class UIController implements Initializable {
 
     private final SimpleStringProperty urlminProperty = new SimpleStringProperty(""), urltotalProperty = new SimpleStringProperty(""),
             connectionStatusProperty = new SimpleStringProperty("");
-    private int count;
-    private static CrawlerSystem system;
+    private HashMap<Integer, ModuleInfo> infoHashMap = new HashMap<Integer, ModuleInfo>();
+    private int count, idcounter;
+    private static CSystem system;
 
     private ObservableList<XYChart.Data> dataList =
             FXCollections.observableArrayList(
                     new XYChart.Data("00:00:00", 100));
+    private int urlsProcessed;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        this.system = new CrawlerSystem(dataList, urlminProperty, urltotalProperty, connectionStatusProperty);
+        system = new CSystem(this);
 
         addButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -72,6 +80,7 @@ public class UIController implements Initializable {
                 ModuleInfo info = system.addModule();
                 ObservableList<ModuleInfo> data = tableView.getItems();
                 data.add(info);
+                infoHashMap.put(idcounter++, info);
             }
         });
 
@@ -92,13 +101,13 @@ public class UIController implements Initializable {
             }
         });
 
-        powerSlider.valueProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-
-                system.setDelay(newValue.intValue());
-            }
-        });
+//        powerSlider.valueProperty().addListener(new ChangeListener<Number>() {
+//            @Override
+//            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+//
+//                system.setDelay(newValue.intValue());
+//            }
+//        });
 
         XYChart.Series series = new XYChart.Series(dataList);
         series.setName("XYChart.Series");
@@ -115,7 +124,7 @@ public class UIController implements Initializable {
                         new EventHandler<ActionEvent>() {
                             @Override
                             public void handle(ActionEvent actionEvent) {
-                                system.update();
+                                updateUI();
                             }
                         }
                 ),
@@ -132,5 +141,45 @@ public class UIController implements Initializable {
      */
     public static void stop() {
         system.shutDown();
+    }
+
+    @Override
+    public void updateInfo(final int module, final long ms) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                infoHashMap.get(module).setPerformance(ms);
+                ++urlsProcessed;
+            }
+        });
+
+    }
+
+    @Override
+    public void updateConnectionStatus(final String status) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                connectionStatusProperty.set(status);
+            }
+        });
+    }
+
+    public void updateUI() {
+        int sum = 0;
+        for (ModuleInfo info : infoHashMap.values()) {
+            sum += Integer.parseInt(info.getPerformance());
+        }
+        urlminProperty.set("" + sum);
+        urltotalProperty.set("" + urlsProcessed);
+        Calendar cal = Calendar.getInstance();
+        cal.getTime();
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+
+        dataList.add(new XYChart.Data(sdf.format(cal.getTime()), sum));
+//        dataList.add(new XYChart.Data(sdf.format(cal.getTime()), urlsProcessed));
+        if (dataList.size() > 20) {
+            dataList.remove(0);
+        }
     }
 }

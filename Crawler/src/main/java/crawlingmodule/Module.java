@@ -45,7 +45,7 @@ public class Module extends UntypedActor {
     /**
      * Object that where info about this Module is stored. Used for the GUI.
      */
-    private final SimpleModuleInfo info;
+    private final ModuleInfo info;
 
     /**
      * Time in milliseconds since the last received result from the {@link crawlingmodule.DataProcessor}.
@@ -68,7 +68,7 @@ public class Module extends UntypedActor {
      * @param processor This Module's {@link DataProcessor}.
      * @param info      The info object of this module.
      */
-    public Module(ActorRef crawler, ActorRef processor, SimpleModuleInfo info, ActorRef admin, int id) {
+    public Module(ActorRef crawler, ActorRef processor, ModuleInfo info, ActorRef admin, int id) {
         this.crawler = crawler;
         this.processor = processor;
         this.admin = admin;
