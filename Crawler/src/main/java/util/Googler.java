@@ -12,6 +12,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * The Googler class googles domains to crawl.
+ * TODO maybe integrate this with the regular parsing
+ *
  * Created by Kris on 9-4-2015.
  */
 public class Googler {
