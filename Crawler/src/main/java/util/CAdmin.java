@@ -1,8 +1,6 @@
 package util;
 
 import akka.actor.UntypedActor;
-import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
 import message.*;
 
 import java.util.ArrayList;
@@ -10,26 +8,28 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * The admin provides the link between all the Modules, the database and the Application thread. Calls the {@link
+ * UICallables} to update the User Interface.
+ * <p/>
+ *
  * Created by Kris on 11-4-2015.
  */
 public class CAdmin extends UntypedActor{
     private final CSystem system;
     private final List<URLData> dataBuffer;
-    private static final int BUFFER_SIZE = 5000;
+    private static final int BUFFER_SIZE = 3000;
     private final DatabaseConnector databaseConnector = new DatabaseConnector();
 
     /* Server comms stuff */
     private final LinkedList<MessageActive> activeList;
     private boolean orderNeeded;
     private ServerConnector serverConnector;
-    private final UICallable uiCallable;
+    private final UICallables uiCallables;
 
-
-    // TODO the property
-    public CAdmin(CSystem system, UICallable uiCallable, ServerConnector serverConnector) {
+    public CAdmin(CSystem system, UICallables uiCallables, ServerConnector serverConnector) {
         this.system = system;
         this.serverConnector = serverConnector;
-        this.uiCallable = uiCallable;
+        this.uiCallables = uiCallables;
         activeList = new LinkedList<>();
         dataBuffer = new ArrayList<>();
     }
@@ -65,7 +65,7 @@ public class CAdmin extends UntypedActor{
                     dataBuffer.clear();
                 }
 
-                uiCallable.updateInfo(m2.getModule(), m2.getMs());
+                uiCallables.updateInfo(m2.getModule(), m2.getMs());
 
                 break;
             case URL_DONE_ACTIVE:

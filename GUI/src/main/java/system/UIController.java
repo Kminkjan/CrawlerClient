@@ -7,8 +7,6 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -22,7 +20,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TableView;
 import javafx.util.Duration;
-import util.UICallable;
+import util.UICallables;
 
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -35,7 +33,7 @@ import java.util.ResourceBundle;
  *
  * Created by KrisMinkjan on 13-2-2015.
  */
-public class UIController implements Initializable, UICallable {
+public class UIController implements Initializable, UICallables {
 
     @FXML
     private Button addButton;

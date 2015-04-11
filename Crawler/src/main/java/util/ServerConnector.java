@@ -1,8 +1,6 @@
 package util;
 
 import akka.actor.ActorRef;
-import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
 import message.MessageActive;
 import message.MessageServer;
 
@@ -43,7 +41,7 @@ public class ServerConnector {
             ACTIVE_TAG = 3;
 
 
-    public ServerConnector(ActorRef admin, final UICallable uiCallable) {
+    public ServerConnector(ActorRef admin, final UICallables uiCallables) {
         LOGGER.info("Establishing connection with server...");
 
         try {
@@ -63,10 +61,10 @@ public class ServerConnector {
             out = new PrintWriter(new BufferedOutputStream(socket.getOutputStream()), true);
             out.println("checkin " + crawlerName);
             out.flush();
-            uiCallable.updateConnectionStatus(("connected"));
+            uiCallables.updateConnectionStatus(("connected"));
         } catch (IOException e) {
             LOGGER.warning("Connection with server NOT successful");
-            uiCallable.updateConnectionStatus(("failed"));
+            uiCallables.updateConnectionStatus(("failed"));
         }
     }
 

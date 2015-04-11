@@ -24,11 +24,11 @@ public class CSystem {
     /**
      * Creates the System.
      */
-    public CSystem(UICallable uiCallable) {
+    public CSystem(UICallables uiCallables) {
         this.system = ActorSystem.create("crawler");
         this.moduleList = new LinkedList<>();
-        this.serverConnector = new ServerConnector(admin, uiCallable);
-        this.admin = system.actorOf(Props.create(CAdmin.class, this, uiCallable, serverConnector));
+        this.serverConnector = new ServerConnector(admin, uiCallables);
+        this.admin = system.actorOf(Props.create(CAdmin.class, this, uiCallables, serverConnector));
     }
 
     /**

@@ -1,14 +1,14 @@
 package system;
 
 import util.CSystem;
-import util.UICallable;
+import util.UICallables;
 
 import java.util.Scanner;
 
 /**
  * Created by KrisMinkjan on 11-4-2015.
  */
-public class UIController implements UICallable{
+public class UIController implements UICallables {
 
     public void start() {
         String WELCOME_MESSAGE = "CrawlerClient v1.1\nThanks for using the crawler made by: \n\n\tTeleCorp(c)\n";
